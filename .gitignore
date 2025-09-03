@@ -1,0 +1,6 @@
+build/*
+!build/*.exe
+dependencies/
+.vscode/
+plans.txt
+tmp.py
