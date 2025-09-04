@@ -83,7 +83,7 @@ public:
         m_uniforms[UNIMAN_Projection] = m_getUniformLocation("projection");
         m_uniforms[UNIMAN_Color]      = m_getUniformLocation("color");
         m_uniforms[UNIMAN_ViewPos]    = m_getUniformLocation("viewPos");
-        m_uniforms[UNIMAN_FogColor]    = m_getUniformLocation("fogColor");
+        m_uniforms[UNIMAN_FogColor]   = m_getUniformLocation("fogColor");
     }
 
     // Uniforms
