@@ -9,6 +9,7 @@ namespace shrekrooms::gl {
 const glm::vec3 globalUp { 0.0f, 1.0f, 0.0f };
 constexpr float deg2rad = M_PI / 180.0f;
 const glm::mat4 mat4identity { 1.0f };
+constexpr int quadVertCount = 6;
 
 
 struct Color : public glm::vec4 {
@@ -66,63 +67,58 @@ protected:
 
 class UniformManager {
 public:
-    enum class Uniform {
-        Translate = 0,
-        View,
-        Projection,
-        Color,
-        UseTexture,
-        RenderText
+    enum Uniform {
+        UNIMAN_Translate = 0,
+        UNIMAN_View,
+        UNIMAN_Projection,
+        UNIMAN_Color,
+        UNIMAN_ViewPos,
+        UNIMAN_FogColor
     };
 
     UniformManager(GLuint shader) :
             m_shader(shader) {
-        m_uniforms[static_cast<size_t>(Uniform::Translate)]  = m_getUniformLocation("translate");
-        m_uniforms[static_cast<size_t>(Uniform::View)]       = m_getUniformLocation("view");
-        m_uniforms[static_cast<size_t>(Uniform::Projection)] = m_getUniformLocation("projection");
-        m_uniforms[static_cast<size_t>(Uniform::Color)]      = m_getUniformLocation("color");
-        m_uniforms[static_cast<size_t>(Uniform::UseTexture)] = m_getUniformLocation("useTexture");
-        m_uniforms[static_cast<size_t>(Uniform::RenderText)] = m_getUniformLocation("renderText");
-    }
-
-    GLuint getUniformLocation(Uniform uniform) const {
-        return m_uniforms[static_cast<size_t>(uniform)];
+        m_uniforms[UNIMAN_Translate]  = m_getUniformLocation("translate");
+        m_uniforms[UNIMAN_View]       = m_getUniformLocation("view");
+        m_uniforms[UNIMAN_Projection] = m_getUniformLocation("projection");
+        m_uniforms[UNIMAN_Color]      = m_getUniformLocation("color");
+        m_uniforms[UNIMAN_ViewPos]    = m_getUniformLocation("viewPos");
+        m_uniforms[UNIMAN_FogColor]    = m_getUniformLocation("fogColor");
     }
 
     // Uniforms
-    void setTranslateMatrix(const glm::mat4 &translateMat) const {
-        glUniformMatrix4fv(getUniformLocation(Uniform::Translate), 1, GL_FALSE, glm::value_ptr(translateMat));
-    }
-
-    void setViewMatrix(const glm::mat4 &viewMat) const {
-        glUniformMatrix4fv(getUniformLocation(Uniform::View), 1, GL_FALSE, glm::value_ptr(viewMat));
-    }
-
-    void setProjectionMatrix(const glm::mat4 &projectionMat) const {
-        glUniformMatrix4fv(getUniformLocation(Uniform::Projection), 1, GL_FALSE, glm::value_ptr(projectionMat));
-    }
-
-    void setColor(const Color &color) const {
-        glUniform1i(getUniformLocation(Uniform::UseTexture), 0);
-        glUniform4fv(getUniformLocation(Uniform::Color), 1, glm::value_ptr(static_cast<glm::vec4>(color)));
-    }
-
-    void setTexture(const Texture &tex) const {
-        glUniform1i(getUniformLocation(Uniform::UseTexture), 1);
+    void setTexture(GLuint id, const Texture &tex) const {
+        glActiveTexture(GL_TEXTURE0 + id);
         glBindTexture(GL_TEXTURE_2D, tex.getId());
     }
 
-    void beginTextRender() const {
-        glUniform1i(getUniformLocation(Uniform::RenderText), 1);
+    void setTranslateMatrix(const glm::mat4 &translateMat) const {
+        glUniformMatrix4fv(m_uniforms[UNIMAN_Translate], 1, GL_FALSE, glm::value_ptr(translateMat));
     }
 
-    void endTextRender() const {
-        glUniform1i(getUniformLocation(Uniform::RenderText), 0);
+    void setViewMatrix(const glm::mat4 &viewMat) const {
+        glUniformMatrix4fv(m_uniforms[UNIMAN_View], 1, GL_FALSE, glm::value_ptr(viewMat));
+    }
+
+    void setProjectionMatrix(const glm::mat4 &projectionMat) const {
+        glUniformMatrix4fv(m_uniforms[UNIMAN_Projection], 1, GL_FALSE, glm::value_ptr(projectionMat));
+    }
+
+    void setColor(const Color &color) const {
+        glUniform4fv(m_uniforms[UNIMAN_Color], 1, glm::value_ptr(static_cast<glm::vec4>(color)));
+    }
+
+    void setFogColor(const Color &color) const {
+        glUniform4fv(m_uniforms[UNIMAN_FogColor], 1, glm::value_ptr(static_cast<glm::vec4>(color)));
+    }
+
+    void setViewPos(const glm::vec3 &pos) const {
+        glUniform3fv(m_uniforms[UNIMAN_ViewPos], 1, glm::value_ptr(pos));
     }
 
 protected:
     GLuint m_shader;
-    std::array<GLuint, 5> m_uniforms;
+    std::array<GLuint, 6> m_uniforms;
 
     GLuint m_getUniformLocation(const std::string &name) const {
         return glGetUniformLocation(m_shader, name.c_str());
@@ -177,6 +173,7 @@ public:
         glViewport(0, 0, m_window.width, m_window.height);
 
         m_makeShaderProgram();
+        glEnable(GL_DEPTH_TEST);
     }
 
     ~GLContext() {
@@ -194,6 +191,10 @@ public:
         return *m_uniman;
     }
 
+    GLuint getShader() const {
+        return m_shader;
+    }
+
     // General
     bool isRunning() const {
         if (isKeyPressed(m_exitKey))
@@ -205,10 +206,14 @@ public:
         glfwPollEvents();
     }
 
+    bool isWindowFocused() const {
+        return glfwGetWindowAttrib(m_window.ptr, GLFW_FOCUSED);
+    }
+
     // Drawing
     void clearBackground(const Color &col) const {
         glClearColor(col.r, col.g, col.b, col.a);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     void enableShader() const {
@@ -292,8 +297,22 @@ protected:
     }
 
     void m_makeShaderProgram() {
-        GLuint vertexModule = m_makeShaderModule(shaders::vertex, GL_VERTEX_SHADER);
-        GLuint fragmentModule = m_makeShaderModule(shaders::fragment, GL_FRAGMENT_SHADER);
+        std::string vertex_s;
+        std::string fragment_s;
+        
+        std::ifstream vert("../src/shaders/vertex.glsl");
+        std::string line;
+        while (std::getline(vert, line))
+            vertex_s += line + '\n';
+        vert.close();
+
+        std::ifstream frag("../src/shaders/fragment.glsl");
+        while (std::getline(frag, line))
+            fragment_s += line + '\n';
+        frag.close();
+
+        GLuint vertexModule = m_makeShaderModule(vertex_s.c_str(), GL_VERTEX_SHADER);
+        GLuint fragmentModule = m_makeShaderModule(fragment_s.c_str(), GL_FRAGMENT_SHADER);
 
         m_shader = glCreateProgram();
 

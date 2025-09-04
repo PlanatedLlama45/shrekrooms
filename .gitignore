@@ -4,3 +4,4 @@ dependencies/
 .vscode/
 plans.txt
 tmp.py
+tmp.glsl

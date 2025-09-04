@@ -10,8 +10,8 @@ namespace shrekrooms {
 namespace controls {
 
     // player attributes    
-    constexpr float mouseSensitivity    = 8.0f;
-    constexpr float walkSpeed           = 3.0f;
+    constexpr float mouseSensitivity    = 10.0f;
+    constexpr float walkSpeed           = 8.0f;
 
     // keybinds
     constexpr int keyForward    = GLFW_KEY_W;
@@ -28,6 +28,9 @@ public:
         m_glc(glc), m_uniman(glc.getUniformManager()), m_pos(pos), m_cameraRot(cameraRot) { }
 
     void update(float dt) {
+        if (!m_glc.isWindowFocused())
+            return;
+
         glm::vec2 mousepos = m_glc.getCursorPos();
         m_glc.setCursorPos({ 0.0f, 0.0f });
 
@@ -58,6 +61,8 @@ public:
         m_glc.enableShader();
         glm::mat4 view = glm::lookAt(m_pos, m_pos + forw, gl::globalUp);
         m_uniman.setViewMatrix(view);
+
+        m_uniman.setViewPos(m_pos);
     }
 
 protected:
