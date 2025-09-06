@@ -10,21 +10,16 @@ int main(int argc, const char **argv) {
 
     gl::Color bgcol { 0.2f, 0.2f, 0.2f };
     // gl::Color bgcol { 0.3f, 0.65f, 0.85f };
+    glc.setBackgroundColor(bgcol);
 
     gl::Texture floorTex { "../img/floor.jpg" };
-    gl::Texture wallTex { "../img/wall2.jpg" };
-    Player player { glc, { -5.0f, 0.0f, -5.0f }, 0.0f };
+    gl::Texture wallTex { "../img/wall.jpg" };
+    Player player { glc, { 0.0f, 0.0f, 4.0f }, 0.0f };
     World world { glc, floorTex, wallTex };
 
     glc.enableShader();
     uniman.setColor({ 1.0f, 0.0f, 1.0f });
     uniman.setFogColor(bgcol);
-
-    glm::mat4 projMat = glm::perspective(gl::deg2rad*90.0f, glc.getWindow().getAspectRatio(), 0.1f, 50.0f);
-    uniman.setProjectionMatrix(projMat);
-    uniman.setTranslateMatrix(gl::mat4identity);
-
-    glEnable(GL_CULL_FACE);
 
     float deltaTime = 0.001f;
     double currentTime;
@@ -38,7 +33,7 @@ int main(int argc, const char **argv) {
         player.update(deltaTime);
 
         glc.enableShader();
-        glc.clearBackground(bgcol);
+        glc.clearBackground();
 
         world.draw();
 

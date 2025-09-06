@@ -172,8 +172,15 @@ public:
         glfwGetFramebufferSize(m_window.ptr, &m_window.width, &m_window.height);
         glViewport(0, 0, m_window.width, m_window.height);
 
-        m_makeShaderProgram();
+        m_shader = shaders::makeShaderProgram();
+        m_uniman = std::make_unique<UniformManager>(m_shader);
+
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+
+        glm::mat4 projMat = glm::perspective(deg2rad*90.0f, m_window.getAspectRatio(), 0.1f, 15.0f);
+        m_uniman->setProjectionMatrix(projMat);
+        m_uniman->setTranslateMatrix(mat4identity);
     }
 
     ~GLContext() {
@@ -211,8 +218,11 @@ public:
     }
 
     // Drawing
-    void clearBackground(const Color &col) const {
+    void setBackgroundColor(const Color &col) const {
         glClearColor(col.r, col.g, col.b, col.a);
+    }
+
+    void clearBackground() const {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
@@ -278,65 +288,6 @@ protected:
     Window m_window;
     std::unique_ptr<UniformManager> m_uniman;
     int m_exitKey;
-
-    GLuint m_makeShaderModule(const char *shaderSrc, GLuint moduleType) {
-        GLuint shaderModule = glCreateShader(moduleType);
-        glShaderSource(shaderModule, 1, &shaderSrc, NULL);
-        glCompileShader(shaderModule);
-
-        int success;
-        glGetShaderiv(shaderModule, GL_COMPILE_STATUS, &success);
-
-        if (!success) {
-            char errorLog[1024];
-            glGetShaderInfoLog(shaderModule, 1024, NULL, errorLog);
-            throw error { "gl.hpp", "shrekrooms::gl::GLContext::m_makeShaderModule", "Shader Module compilation error:\n" } << errorLog;
-        }
-
-        return shaderModule;
-    }
-
-    void m_makeShaderProgram() {
-        std::string vertex_s;
-        std::string fragment_s;
-        
-        std::ifstream vert("../src/shaders/vertex.glsl");
-        std::string line;
-        while (std::getline(vert, line))
-            vertex_s += line + '\n';
-        vert.close();
-
-        std::ifstream frag("../src/shaders/fragment.glsl");
-        while (std::getline(frag, line))
-            fragment_s += line + '\n';
-        frag.close();
-
-        GLuint vertexModule = m_makeShaderModule(vertex_s.c_str(), GL_VERTEX_SHADER);
-        GLuint fragmentModule = m_makeShaderModule(fragment_s.c_str(), GL_FRAGMENT_SHADER);
-
-        m_shader = glCreateProgram();
-
-        glAttachShader(m_shader, vertexModule);
-        glAttachShader(m_shader, fragmentModule);
-
-        glLinkProgram(m_shader);
-
-        int success;
-        glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
-
-        if (!success) {
-            char errorLog[1024];
-            glGetProgramInfoLog(m_shader, 1024, NULL, errorLog);
-            throw error { "gl.hpp", "shrekrooms::gl::GLContext::m_makeShaderProgram", "Shader linking error:\n" } << errorLog;
-        }
-
-        glDeleteShader(vertexModule);
-        glDeleteShader(fragmentModule);
-
-        // Uniforms
-        m_uniman = std::make_unique<UniformManager>(m_shader);
-    }
-
 };
 
 

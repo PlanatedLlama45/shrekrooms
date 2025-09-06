@@ -15,7 +15,7 @@ layout (binding=1) uniform sampler2D texture1;
 
 
 vec4 calcFog(vec4 color, float dist) {
-    const float fogStart = 3.0f;
+    const float fogStart = 2.0f;
     const float fogDensity = 0.5f;
 
     if (dist <= fogStart)
