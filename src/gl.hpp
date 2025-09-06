@@ -178,6 +178,7 @@ public:
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
+        enableShader();
         glm::mat4 projMat = glm::perspective(deg2rad*90.0f, m_window.getAspectRatio(), 0.1f, 15.0f);
         m_uniman->setProjectionMatrix(projMat);
         m_uniman->setTranslateMatrix(mat4identity);
