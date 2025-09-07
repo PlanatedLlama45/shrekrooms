@@ -5,6 +5,7 @@
 #define STBI_FAILURE_USERMSG
 #include <stb_image.h>
 
+
 shrekrooms::gl::Texture::Texture(const std::string &filename, bool interpolation) {
     int channels;
     stbi_uc *data = stbi_load(filename.c_str(), &m_width, &m_height, &channels, STBI_rgb_alpha);
