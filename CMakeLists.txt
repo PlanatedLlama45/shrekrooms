@@ -24,6 +24,7 @@ target_link_libraries(
     
     ${CMAKE_SOURCE_DIR}/dependencies/libglfw3.a
     ${CMAKE_SOURCE_DIR}/dependencies/freetype.lib
+    ${CMAKE_SOURCE_DIR}/dependencies/glad.a
     OpenGL::GL
     
     -static
