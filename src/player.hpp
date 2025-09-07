@@ -2,18 +2,22 @@
 
 #include "imports.hpp"
 #include "gl.hpp"
+#include "world.hpp"
 
 
 namespace shrekrooms {
 
 
-namespace controls {
+namespace player_data {
 
-    // player attributes    
     constexpr float mouseSensitivity    = 10.0f;
     constexpr float walkSpeed           = 8.0f;
+    constexpr float radius              = 1.0f;
 
-    // keybinds
+} // namespace player_data
+
+namespace controls {
+
     constexpr int keyForward    = GLFW_KEY_W;
     constexpr int keyBackward   = GLFW_KEY_S;
     constexpr int keyLeft       = GLFW_KEY_A;
@@ -27,14 +31,14 @@ public:
     Player(const gl::GLContext &glc, const glm::vec3 &pos, float cameraRot) : 
         m_glc(glc), m_uniman(glc.getUniformManager()), m_pos(pos), m_cameraRot(cameraRot) { }
 
-    void update(float dt) {
+    void update(const World &world, float dt) {
         if (!m_glc.isWindowFocused())
             return;
 
         glm::vec2 mousepos = m_glc.getCursorPos();
         m_glc.setCursorPos({ 0.0f, 0.0f });
 
-        m_cameraRot += controls::mouseSensitivity * mousepos.x * dt;
+        m_cameraRot += player_data::mouseSensitivity * mousepos.x * dt;
 
         glm::vec3 forw = {
             glm::cos(m_cameraRot),
@@ -55,8 +59,12 @@ public:
 
         if (glm::length(dPos) > 0.1f) {
             dPos = glm::normalize(dPos);
-            m_pos += controls::walkSpeed * dPos * dt;
+            m_pos += player_data::walkSpeed * dPos * dt;
         }
+
+        auto inter = world.getPlayerIntersection({ m_pos.x, m_pos.z }, player_data::radius);
+        if (inter.first)
+            m_pos += glm::vec3 { inter.second.x, 0.0f, inter.second.y };
 
         m_glc.enableShader();
         glm::mat4 view = glm::lookAt(m_pos, m_pos + forw, gl::globalUp);

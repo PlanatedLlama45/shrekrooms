@@ -7,6 +7,35 @@
 namespace shrekrooms {
 
 
+struct Hitbox {
+    Hitbox() :
+        posMin(0.0f), posMax(0.0f) { }
+    
+    Hitbox(const glm::vec2 &posMin, const glm::vec2 &posMax) :
+        posMin(posMin), posMax(posMax) { }
+
+    bool isInside(const glm::vec2 &pos) const {
+        return (
+            posMin.x <= pos.x && pos.x <= posMax.x &&  
+            posMin.y <= pos.y && pos.y <= posMax.y
+        );
+    }
+
+    // pair { bool, vec2 delta or {0,0} if no intersection }
+    std::pair<bool, glm::vec2> getCircleIntersection(const glm::vec2 &pos, float radius) const {
+        glm::vec2 closest = glm::clamp(pos, posMin, posMax);
+        float dist = glm::distance(pos, closest);
+        if (radius < dist)
+            return { false, { 0.0f, 0.0f } };
+        glm::vec2 dir = glm::normalize(pos - closest);
+        dir *= (radius - dist);
+        return { true, dir };
+    }
+
+    glm::vec2 posMin, posMax;
+};
+
+
 namespace world_data {
     constexpr float chunkSize = 8.0f;
     constexpr float chunkHeight = 5.0f;
@@ -22,9 +51,46 @@ class Chunk {
 public:
     Chunk(const gl::GLContext &glc, const glm::ivec2 &chunkPos) : 
             m_glc(glc), m_uniman(glc.getUniformManager()), m_chunkPos(chunkPos) {
-        if (s_geometry.use_count() != 0)
-            return;
+        if (s_geometry.use_count() == 0)
+            m_generateGeometry();
 
+        glm::vec2 offset = { m_chunkPos.x, m_chunkPos.y };
+        offset *= world_data::chunkSize;
+        m_chunkTranslateMat = glm::translate(gl::mat4identity, { offset.x, 0.0f, offset.y });
+
+        float wmax = 0.5f * world_data::chunkSize * world_data::wallPercentage;
+        m_hitbox = Hitbox {
+            offset - glm::vec2 { wmax },
+            offset + glm::vec2 { wmax },
+        };
+    }
+
+    ~Chunk() {
+        if (s_geometry.use_count() == 1) {
+            glDeleteVertexArrays(1, &s_geometry->vao);
+            glDeleteBuffers(1, &s_geometry->vbo);
+        }
+    }
+
+    void draw() const {
+        m_uniman.setTranslateMatrix(m_chunkTranslateMat);
+        glBindVertexArray(s_geometry->vao);
+        glDrawArrays(GL_TRIANGLES, 0, gl::quadVertCount*6);
+    }
+
+    const Hitbox &getHitbox() const {
+        return m_hitbox;
+    }
+
+protected:
+    const gl::GLContext &m_glc;
+    const gl::UniformManager &m_uniman;
+    glm::ivec2 m_chunkPos;
+    glm::mat4 m_chunkTranslateMat;
+    std::shared_ptr<gl::Geometry> s_geometry;
+    Hitbox m_hitbox;
+
+    void m_generateGeometry() {
         GLuint vao, vbo;
 
         float pmax = 0.5f * world_data::chunkSize;
@@ -101,29 +167,6 @@ public:
 
         s_geometry = std::make_unique<gl::Geometry>(vao, vbo);
     }
-
-    ~Chunk() {
-        if (s_geometry.use_count() == 1) {
-            glDeleteVertexArrays(1, &s_geometry->vao);
-            glDeleteBuffers(1, &s_geometry->vbo);
-        }
-    }
-
-    void draw() const {
-        glm::vec2 offset = { m_chunkPos.x, m_chunkPos.y };
-        offset *= world_data::chunkSize /* * 1.05f*/;
-        glm::mat4 translate = glm::translate(gl::mat4identity, { offset.x, 0.0f, offset.y });
-        m_uniman.setTranslateMatrix(translate);
-
-        glBindVertexArray(s_geometry->vao);
-        glDrawArrays(GL_TRIANGLES, 0, gl::quadVertCount*6);
-    }
-
-protected:
-    const gl::GLContext &m_glc;
-    const gl::UniformManager &m_uniman;
-    glm::ivec2 m_chunkPos;
-    std::shared_ptr<gl::Geometry> s_geometry;
 };
 
 
@@ -148,6 +191,20 @@ public:
         for (const Chunk &ch : m_chunks)
             ch.draw();
     }
+    
+    // pair { bool, vec2 delta or {0,0} if no intersection }
+    std::pair<bool, glm::vec2> getPlayerIntersection(const glm::vec2 &pos, float radius) const {
+        std::pair<bool, glm::vec2> res { false, { 0.0f, 0.0f } };
+        for (const Chunk &ch : m_chunks) {
+            auto inter = ch.getHitbox().getCircleIntersection(pos, radius);
+            if (inter.first) {
+                res.first = true;
+                res.second += inter.second;
+            }
+        }
+        return res;
+    }
+
 
 protected:
     const gl::GLContext &m_glc;

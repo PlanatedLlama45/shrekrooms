@@ -239,7 +239,7 @@ public:
     bool isKeyPressed(int key) const {
         return glfwGetKey(m_window.ptr, key) == GLFW_PRESS;
     }
-    
+
     bool isKeyPressedRepeat(int key) const {
         return glfwGetKey(m_window.ptr, key) == GLFW_REPEAT;
     }

@@ -2,6 +2,7 @@
 #include "player.hpp"
 #include "world.hpp"
 
+
 int main(int argc, const char **argv) {
     using namespace shrekrooms;
 
@@ -30,7 +31,7 @@ int main(int argc, const char **argv) {
 
         glfwPollEvents();
 
-        player.update(deltaTime);
+        player.update(world, deltaTime);
 
         glc.enableShader();
         glc.clearBackground();
