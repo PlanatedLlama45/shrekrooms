@@ -1,22 +1,22 @@
 #version 420 core
 
-layout (location=0) in vec3 vertexPos;
-layout (location=1) in vec2 vertexTexCoord;
-layout (location=2) in float texId_v;
+layout (location=0) in vec3 v_pos;
+layout (location=1) in vec2 v_texCoord;
+layout (location=2) in float v_texId;
 
-out vec2 fragTexCoord;
-out float texId_f;
-out vec3 vertexPos_f;
+out vec2 f_texCoord;
+out float f_texId;
+out vec3 f_pos;
 
-uniform mat4 translate;
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 u_translate;
+uniform mat4 u_view;
+uniform mat4 u_projection;
 
 
 void main() {
-    gl_Position = projection * view * translate * vec4(vertexPos, 1.0f);
+    gl_Position = u_projection * u_view * u_translate * vec4(v_pos, 1.0f);
 
-    fragTexCoord = vertexTexCoord;
-    texId_f = texId_v;
-    vertexPos_f = (translate * vec4(vertexPos, 1.0f)).xyz;
+    f_texCoord = v_texCoord;
+    f_texId = v_texId;
+    f_pos = (u_translate * vec4(v_pos, 1.0f)).xyz;
 }

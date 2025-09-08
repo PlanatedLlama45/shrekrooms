@@ -79,12 +79,12 @@ public:
 
     UniformManager(GLuint shader) :
             m_shader(shader) {
-        m_uniforms[UNIMAN_Translate]  = m_getUniformLocation("translate");
-        m_uniforms[UNIMAN_View]       = m_getUniformLocation("view");
-        m_uniforms[UNIMAN_Projection] = m_getUniformLocation("projection");
-        m_uniforms[UNIMAN_Color]      = m_getUniformLocation("color");
-        m_uniforms[UNIMAN_ViewPos]    = m_getUniformLocation("viewPos");
-        m_uniforms[UNIMAN_FogColor]   = m_getUniformLocation("fogColor");
+        m_uniforms[UNIMAN_Translate]  = m_getUniformLocation("u_translate");
+        m_uniforms[UNIMAN_View]       = m_getUniformLocation("u_view");
+        m_uniforms[UNIMAN_Projection] = m_getUniformLocation("u_projection");
+        m_uniforms[UNIMAN_Color]      = m_getUniformLocation("u_color");
+        m_uniforms[UNIMAN_ViewPos]    = m_getUniformLocation("u_viewPos");
+        m_uniforms[UNIMAN_FogColor]   = m_getUniformLocation("u_fogColor");
     }
 
     // Uniforms

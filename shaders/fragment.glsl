@@ -1,17 +1,17 @@
 #version 420 core
 
-in vec2 fragTexCoord;
-in float texId_f;
-in vec3 vertexPos_f;
+in vec2 f_texCoord;
+in float f_texId;
+in vec3 f_pos;
 
-out vec4 screenColor;
+out vec4 outScreenColor;
 
-uniform vec4 color;
-uniform vec4 fogColor;
-uniform vec3 viewPos;
+uniform vec4 u_color;
+uniform vec4 u_fogColor;
+uniform vec3 u_viewPos;
 
-layout (binding=0) uniform sampler2D texture0;
-layout (binding=1) uniform sampler2D texture1;
+layout (binding=0) uniform sampler2D u_texture0;
+layout (binding=1) uniform sampler2D u_texture1;
 
 
 vec4 calcFog(vec4 color, float dist) {
@@ -23,20 +23,20 @@ vec4 calcFog(vec4 color, float dist) {
 
     float t = exp(-(dist - fogStart) * fogDensity);
 
-    return mix(fogColor, color, 2*t - t*t);
+    return mix(u_fogColor, color, 2*t - t*t);
 }
 
 void main() {
-    if (texId_f == 0.0f)
-        screenColor = texture(texture0, fragTexCoord);
-    else if (texId_f == 1.0f)
-        screenColor = texture(texture1, fragTexCoord);
+    if (f_texId == 0.0f)
+        outScreenColor = texture(u_texture0, f_texCoord);
+    else if (f_texId == 1.0f)
+        outScreenColor = texture(u_texture1, f_texCoord);
     else
-        screenColor = color;
+        outScreenColor = u_color;
 
-    if (screenColor.a == 0)
+    if (outScreenColor.a == 0)
         discard;
 
-    float dist = distance(vertexPos_f, viewPos);
-    screenColor = calcFog(screenColor, dist);
+    float dist = distance(f_pos, u_viewPos);
+    outScreenColor = calcFog(outScreenColor, dist);
 }
