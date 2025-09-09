@@ -31,6 +31,14 @@ public:
     Player(const gl::GLContext &glc, const glm::vec3 &pos, float cameraRot) : 
         m_glc(glc), m_uniman(glc.getUniformManager()), m_pos(pos), m_cameraRot(cameraRot) { }
 
+    const glm::vec3 &getPos() const {
+        return m_pos;
+    }
+
+    float getCameraRot() const {
+        return m_cameraRot;
+    }
+
     void update(const World &world, float dt) {
         if (!m_glc.isWindowFocused())
             return;
@@ -62,7 +70,7 @@ public:
             m_pos += player_data::walkSpeed * dPos * dt;
         }
 
-        auto inter = world.getPlayerIntersection({ m_pos.x, m_pos.z }, player_data::radius);
+        auto inter = world.getCircleIntersection({ m_pos.x, m_pos.z }, player_data::radius);
         if (inter.first)
             m_pos += glm::vec3 { inter.second.x, 0.0f, inter.second.y };
 

@@ -1,10 +1,13 @@
 #include "gl.hpp"
-#include "player.hpp"
 #include "world.hpp"
+#include "player.hpp"
+#include "shrek.hpp"
 
 
 int main(int argc, const char **argv) {
     using namespace shrekrooms;
+
+    initRandom();
 
     gl::GLContext glc { 640*2, 480*2, "Shrekrooms", false, GLFW_KEY_ESCAPE };
     gl::UniformManager uniman = glc.getUniformManager();
@@ -15,7 +18,10 @@ int main(int argc, const char **argv) {
 
     gl::Texture floorTex { "../img/floor.jpg" };
     gl::Texture wallTex { "../img/wall.jpg" };
+    gl::Texture shrekTex { "../img/shrek.jpg" };
+
     Player player { glc, { 0.0f, 0.0f, 4.0f }, 0.0f };
+    Shrek shrek { glc, { 4.0f, 0.0f, 16.0f }, shrekTex };
     World world { glc, floorTex, wallTex };
 
     glc.enableShader();
@@ -32,11 +38,16 @@ int main(int argc, const char **argv) {
         glfwPollEvents();
 
         player.update(world, deltaTime);
+        shrek.update(world, player, deltaTime);
+
+        if (shrek.isCollidingPlayer(player))
+            break;
 
         glc.enableShader();
         glc.clearBackground();
 
         world.draw();
+        shrek.draw(player);
 
         glc.drawBuffer();
         deltaTime = glfwGetTime() - currentTime;

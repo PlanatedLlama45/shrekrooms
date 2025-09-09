@@ -39,7 +39,7 @@ struct Hitbox {
 namespace world_data {
     constexpr float chunkSize = 8.0f;
     constexpr float chunkHeight = 5.0f;
-    constexpr int chunkFloorTiles = 2;
+    constexpr int chunkFloorTiles = 3;
     constexpr int chunkWallTiles = 1;
     constexpr float wallPercentage = 0.5f; // in %/100 (e.g. 0.5f == 50%)
 
@@ -51,7 +51,7 @@ class Chunk {
 public:
     Chunk(const gl::GLContext &glc, const glm::ivec2 &chunkPos) : 
             m_glc(glc), m_uniman(glc.getUniformManager()), m_chunkPos(chunkPos) {
-        if (s_geometry.use_count() == 0)
+        if (m_geometry.use_count() == 0)
             m_generateGeometry();
 
         glm::vec2 offset = { m_chunkPos.x, m_chunkPos.y };
@@ -66,15 +66,15 @@ public:
     }
 
     ~Chunk() {
-        if (s_geometry.use_count() == 1) {
-            glDeleteVertexArrays(1, &s_geometry->vao);
-            glDeleteBuffers(1, &s_geometry->vbo);
+        if (m_geometry.use_count() == 1) {
+            glDeleteVertexArrays(1, &m_geometry->vao);
+            glDeleteBuffers(1, &m_geometry->vbo);
         }
     }
 
     void draw() const {
         m_uniman.setTranslateMatrix(m_chunkTranslateMat);
-        glBindVertexArray(s_geometry->vao);
+        glBindVertexArray(m_geometry->vao);
         glDrawArrays(GL_TRIANGLES, 0, gl::quadVertCount*6);
     }
 
@@ -87,17 +87,17 @@ protected:
     const gl::UniformManager &m_uniman;
     glm::ivec2 m_chunkPos;
     glm::mat4 m_chunkTranslateMat;
-    std::shared_ptr<gl::Geometry> s_geometry;
+    std::shared_ptr<gl::Geometry> m_geometry;
     Hitbox m_hitbox;
 
     void m_generateGeometry() {
         GLuint vao, vbo;
 
-        float pmax = 0.5f * world_data::chunkSize;
-        float wmax = pmax * world_data::wallPercentage;
-        float ymax = 0.5f * world_data::chunkHeight;
-        float tfmax = world_data::chunkFloorTiles;
-        float twmax = world_data::chunkWallTiles;
+        constexpr float pmax = 0.5f * world_data::chunkSize;
+        constexpr float wmax = pmax * world_data::wallPercentage;
+        constexpr float ymax = 0.5f * world_data::chunkHeight;
+        constexpr float tfmax = world_data::chunkFloorTiles;
+        constexpr float twmax = world_data::chunkWallTiles;
 
         constexpr size_t stride = 6;
         constexpr size_t floatcount = stride*gl::quadVertCount*(2 + 4);
@@ -156,16 +156,16 @@ protected:
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, floatcount*sizeof(GLfloat), verts, GL_STATIC_DRAW);
         // Position
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)0);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)0);
         // Texture coordinates
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
         glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
         // Texture id
-        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)(5*sizeof(GLfloat)));
         glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)(5*sizeof(GLfloat)));
 
-        s_geometry = std::make_unique<gl::Geometry>(vao, vbo);
+        m_geometry = std::make_unique<gl::Geometry>(vao, vbo);
     }
 };
 
@@ -193,7 +193,7 @@ public:
     }
     
     // pair { bool, vec2 delta or {0,0} if no intersection }
-    std::pair<bool, glm::vec2> getPlayerIntersection(const glm::vec2 &pos, float radius) const {
+    std::pair<bool, glm::vec2> getCircleIntersection(const glm::vec2 &pos, float radius) const {
         std::pair<bool, glm::vec2> res { false, { 0.0f, 0.0f } };
         for (const Chunk &ch : m_chunks) {
             auto inter = ch.getHitbox().getCircleIntersection(pos, radius);

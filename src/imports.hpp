@@ -62,5 +62,25 @@ protected:
 };
 
 
+inline void initRandom() {
+    srand(time(NULL));
+}
+
+// Random int: [lo; hi]
+inline int getRandomInt(int lo, int hi) {
+    return lo + rand() % (hi - lo + 1);
+}
+
+// Random float [0; 1]
+inline float getRandomFloat() {
+    return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+}
+
+// Random float [lo; hi]
+inline float getRandomFloat(float lo, float hi) {
+    return lo + getRandomFloat() * (hi - lo);
+}
+
+
 } // namespace shrekrooms
 

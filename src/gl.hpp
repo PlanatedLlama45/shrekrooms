@@ -70,16 +70,20 @@ class UniformManager {
 public:
     enum Uniform {
         UNIMAN_Translate = 0,
+        UNIMAN_Rotate,
         UNIMAN_View,
         UNIMAN_Projection,
         UNIMAN_Color,
         UNIMAN_ViewPos,
-        UNIMAN_FogColor
+        UNIMAN_FogColor,
+
+        UNIMAN_UNICOUNT
     };
 
     UniformManager(GLuint shader) :
             m_shader(shader) {
         m_uniforms[UNIMAN_Translate]  = m_getUniformLocation("u_translate");
+        m_uniforms[UNIMAN_Rotate]     = m_getUniformLocation("u_rotate");
         m_uniforms[UNIMAN_View]       = m_getUniformLocation("u_view");
         m_uniforms[UNIMAN_Projection] = m_getUniformLocation("u_projection");
         m_uniforms[UNIMAN_Color]      = m_getUniformLocation("u_color");
@@ -95,6 +99,10 @@ public:
 
     void setTranslateMatrix(const glm::mat4 &translateMat) const {
         glUniformMatrix4fv(m_uniforms[UNIMAN_Translate], 1, GL_FALSE, glm::value_ptr(translateMat));
+    }
+
+    void setRotateMatrix(const glm::mat4 &rotateMat) const {
+        glUniformMatrix4fv(m_uniforms[UNIMAN_Rotate], 1, GL_FALSE, glm::value_ptr(rotateMat));
     }
 
     void setViewMatrix(const glm::mat4 &viewMat) const {
@@ -119,7 +127,7 @@ public:
 
 protected:
     GLuint m_shader;
-    std::array<GLuint, 6> m_uniforms;
+    std::array<GLuint, UNIMAN_UNICOUNT> m_uniforms;
 
     GLuint m_getUniformLocation(const std::string &name) const {
         return glGetUniformLocation(m_shader, name.c_str());
@@ -149,8 +157,8 @@ public:
         if (!glfwInit())
             throw error { "gl.hpp", "shrekrooms::gl::GLContext::GLContext", "Failed to initialize GLFW" };
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, GLFW_VERSION_MAJOR);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, GLFW_VERSION_MINOR);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
@@ -183,6 +191,7 @@ public:
         glm::mat4 projMat = glm::perspective(deg2rad*90.0f, m_window.getAspectRatio(), 0.1f, 15.0f);
         m_uniman->setProjectionMatrix(projMat);
         m_uniman->setTranslateMatrix(mat4identity);
+        m_uniman->setRotateMatrix(mat4identity);
     }
 
     ~GLContext() {
