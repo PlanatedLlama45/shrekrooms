@@ -7,7 +7,7 @@ int main(int argc, const char **argv) {
     using namespace shrekrooms;
     srand(time(NULL));
 
-    maze::Maze maze { 3 };
+    maze::Maze maze { 5 };
 
     return 0;
 

@@ -113,11 +113,12 @@ protected:
     void m_generateMaze() {
         glm::ivec2 pos { 0, 0 };
         while (true) {
-            std::cout << pos.x << "; " << pos.y << '\n';
+            std::cout << '(' << pos.x << ',' << pos.y << ')';
 
             Direction dir = m_getRngDirection(pos);
             if (dir == Direction::Null)
                 break;
+            std::cout << ',';
             m_nodes[pos].walls ^= dir;
             pos += getDirectionVector(dir);
             m_nodes[pos].walls ^= negateDirection(dir);
