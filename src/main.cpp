@@ -5,6 +5,11 @@
 
 int main(int argc, const char **argv) {
     using namespace shrekrooms;
+    srand(time(NULL));
+
+    maze::Maze maze { 3 };
+
+    return 0;
 
     gl::GLContext glc { 640*2, 480*2, "Shrekrooms", false, GLFW_KEY_ESCAPE };
     gl::UniformManager uniman = glc.getUniformManager();

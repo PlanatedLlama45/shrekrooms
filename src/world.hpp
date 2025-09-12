@@ -2,6 +2,7 @@
 
 #include "imports.hpp"
 #include "gl.hpp"
+#include "maze.hpp"
 
 
 namespace shrekrooms {
@@ -49,6 +50,7 @@ namespace world_data {
 
 class Chunk {
 public:
+
     Chunk(const gl::GLContext &glc, const glm::ivec2 &chunkPos) : 
             m_glc(glc), m_uniman(glc.getUniformManager()), m_chunkPos(chunkPos) {
         if (s_geometry.use_count() == 0)
