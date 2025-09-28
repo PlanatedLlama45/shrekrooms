@@ -62,9 +62,9 @@ public:
             m_pos += player_data::walkSpeed * dPos * dt;
         }
 
-        auto inter = world.getPlayerIntersection({ m_pos.x, m_pos.z }, player_data::radius);
-        if (inter.first)
-            m_pos += glm::vec3 { inter.second.x, 0.0f, inter.second.y };
+        // auto inter = world.getPlayerIntersection({ m_pos.x, m_pos.z }, player_data::radius);
+        // if (inter.first)
+        //     m_pos += glm::vec3 { inter.second.x, 0.0f, inter.second.y };
 
         m_glc.enableShader();
         glm::mat4 view = glm::lookAt(m_pos, m_pos + forw, gl::globalUp);

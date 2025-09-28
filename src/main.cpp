@@ -7,10 +7,6 @@ int main(int argc, const char **argv) {
     using namespace shrekrooms;
     srand(time(NULL));
 
-    maze::Maze maze { 5, 0.3f };
-
-    return 0;
-
     gl::GLContext glc { 640*2, 480*2, "Shrekrooms", false, GLFW_KEY_ESCAPE };
     gl::UniformManager uniman = glc.getUniformManager();
 
@@ -21,7 +17,8 @@ int main(int argc, const char **argv) {
     gl::Texture floorTex { "../img/floor.jpg" };
     gl::Texture wallTex { "../img/wall.jpg" };
     Player player { glc, { 0.0f, 0.0f, 4.0f }, 0.0f };
-    World world { glc, floorTex, wallTex };
+    maze::Maze maze { world_data::chunksCountWidth, 0.3f };
+    World world { glc, maze, floorTex, wallTex };
 
     glc.enableShader();
     uniman.setColor({ 1.0f, 0.0f, 1.0f });

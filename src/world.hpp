@@ -38,11 +38,10 @@ struct Hitbox {
 
 
 namespace world_data {
-    constexpr float chunkSize = 8.0f;
+    constexpr float chunkSize = 5.0f;
     constexpr float chunkHeight = 5.0f;
     constexpr int chunkFloorTiles = 2;
     constexpr int chunkWallTiles = 1;
-    constexpr float wallPercentage = 0.5f; // in %/100 (e.g. 0.5f == 50%)
 
     constexpr int chunksCountWidth = 10;
 };
@@ -51,16 +50,16 @@ namespace world_data {
 class Chunk {
 public:
 
-    Chunk(const gl::GLContext &glc, const glm::ivec2 &chunkPos) : 
+    Chunk(const gl::GLContext &glc, const glm::ivec2 &chunkPos, const maze::MazeNode &node) : 
             m_glc(glc), m_uniman(glc.getUniformManager()), m_chunkPos(chunkPos) {
         if (s_geometry.use_count() == 0)
-            m_generateGeometry();
+            m_generateGeometry(node);
 
         glm::vec2 offset = { m_chunkPos.x, m_chunkPos.y };
         offset *= world_data::chunkSize;
         m_chunkTranslateMat = glm::translate(gl::mat4identity, { offset.x, 0.0f, offset.y });
 
-        float wmax = 0.5f * world_data::chunkSize * world_data::wallPercentage;
+        float wmax = 0.5f * world_data::chunkSize;
         m_hitbox = Hitbox {
             offset - glm::vec2 { wmax },
             offset + glm::vec2 { wmax },
@@ -92,19 +91,16 @@ protected:
     std::shared_ptr<gl::Geometry> s_geometry;
     Hitbox m_hitbox;
 
-    void m_generateGeometry() {
+    // TODO: make walls appear depending on node.walls value
+    void m_generateGeometry(const maze::MazeNode &node) {
         GLuint vao, vbo;
 
         float pmax = 0.5f * world_data::chunkSize;
-        float wmax = pmax * world_data::wallPercentage;
         float ymax = 0.5f * world_data::chunkHeight;
         float tfmax = world_data::chunkFloorTiles;
         float twmax = world_data::chunkWallTiles;
 
-        constexpr size_t stride = 6;
-        constexpr size_t floatcount = stride*gl::quadVertCount*(2 + 4);
-
-        float verts[floatcount] = {
+        std::vector<float> verts {
             // floor
              pmax, -ymax,  pmax,  tfmax, 0.0f,      0.0f,
              pmax, -ymax, -pmax,  tfmax, tfmax,     0.0f,
@@ -120,43 +116,58 @@ protected:
              pmax,  ymax, -pmax,  tfmax, tfmax,     0.0f,
             -pmax,  ymax,  pmax,  0.0f,  0.0f,      0.0f,
             -pmax,  ymax, -pmax,  0.0f,  tfmax,     0.0f,
-
-            // walls
-             wmax, -ymax, -wmax,    0.0f,  twmax,   1.0f,
-            -wmax, -ymax, -wmax,    twmax, twmax,   1.0f,
-            -wmax,  ymax, -wmax,    twmax, 0.0f,    1.0f,
-             wmax, -ymax, -wmax,    0.0f,  twmax,   1.0f,
-            -wmax,  ymax, -wmax,    twmax, 0.0f,    1.0f,
-             wmax,  ymax, -wmax,    0.0f,  0.0f,    1.0f,
-
-             wmax, -ymax,  wmax,    0.0f,  twmax,   1.0f,
-             wmax, -ymax, -wmax,    twmax, twmax,   1.0f,
-             wmax,  ymax, -wmax,    twmax, 0.0f,    1.0f,
-             wmax, -ymax,  wmax,    0.0f,  twmax,   1.0f,
-             wmax,  ymax, -wmax,    twmax, 0.0f,    1.0f,
-             wmax,  ymax,  wmax,    0.0f,  0.0f,    1.0f,
-
-            -wmax, -ymax,  wmax,    0.0f,  twmax,   1.0f,
-             wmax, -ymax,  wmax,    twmax, twmax,   1.0f,
-             wmax,  ymax,  wmax,    twmax, 0.0f,    1.0f,
-            -wmax, -ymax,  wmax,    0.0f,  twmax,   1.0f,
-             wmax,  ymax,  wmax,    twmax, 0.0f,    1.0f,
-            -wmax,  ymax,  wmax,    0.0f,  0.0f,    1.0f,
-
-            -wmax, -ymax, -wmax,    0.0f,  twmax,   1.0f,
-            -wmax, -ymax,  wmax,    twmax, twmax,   1.0f,
-            -wmax,  ymax,  wmax,    twmax, 0.0f,    1.0f,
-            -wmax, -ymax, -wmax,    0.0f,  twmax,   1.0f,
-            -wmax,  ymax,  wmax,    twmax, 0.0f,    1.0f,
-            -wmax,  ymax, -wmax,    0.0f,  0.0f,    1.0f,
         };
+
+        // walls
+        if ((node.walls & maze::Direction::XPos) != maze::Direction::Null) {
+            verts.insert(verts.end(), {
+                 pmax, -ymax, -pmax,    0.0f,  twmax,   1.0f,
+                 pmax, -ymax,  pmax,    twmax, twmax,   1.0f,
+                 pmax,  ymax,  pmax,    twmax, 0.0f,    1.0f,
+                 pmax, -ymax, -pmax,    0.0f,  twmax,   1.0f,
+                 pmax,  ymax,  pmax,    twmax, 0.0f,    1.0f,
+                 pmax,  ymax, -pmax,    0.0f,  0.0f,    1.0f,
+            });
+        }
+        if ((node.walls & maze::Direction::XNeg) != maze::Direction::Null) {
+            verts.insert(verts.end(), {
+                -pmax, -ymax,  pmax,    0.0f,  twmax,   1.0f,
+                -pmax, -ymax, -pmax,    twmax, twmax,   1.0f,
+                -pmax,  ymax, -pmax,    twmax, 0.0f,    1.0f,
+                -pmax, -ymax,  pmax,    0.0f,  twmax,   1.0f,
+                -pmax,  ymax, -pmax,    twmax, 0.0f,    1.0f,
+                -pmax,  ymax,  pmax,    0.0f,  0.0f,    1.0f,
+            });
+        }
+        if ((node.walls & maze::Direction::ZPos) != maze::Direction::Null) {
+            verts.insert(verts.end(), {
+                 pmax, -ymax,  pmax,    0.0f,  twmax,   1.0f,
+                -pmax, -ymax,  pmax,    twmax, twmax,   1.0f,
+                -pmax,  ymax,  pmax,    twmax, 0.0f,    1.0f,
+                 pmax, -ymax,  pmax,    0.0f,  twmax,   1.0f,
+                -pmax,  ymax,  pmax,    twmax, 0.0f,    1.0f,
+                 pmax,  ymax,  pmax,    0.0f,  0.0f,    1.0f,
+            });
+        }
+        if ((node.walls & maze::Direction::ZNeg) != maze::Direction::Null) {
+            verts.insert(verts.end(), {
+                -pmax, -ymax, -pmax,    0.0f,  twmax,   1.0f,
+                 pmax, -ymax, -pmax,    twmax, twmax,   1.0f,
+                 pmax,  ymax, -pmax,    twmax, 0.0f,    1.0f,
+                -pmax, -ymax, -pmax,    0.0f,  twmax,   1.0f,
+                 pmax,  ymax, -pmax,    twmax, 0.0f,    1.0f,
+                -pmax,  ymax, -pmax,    0.0f,  0.0f,    1.0f,
+            });
+        }
 
         glGenVertexArrays(1, &vao);
         glBindVertexArray(vao);
 
+        constexpr size_t stride = 6;
+
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, floatcount*sizeof(GLfloat), verts, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, verts.size()*sizeof(GLfloat), verts.data(), GL_STATIC_DRAW);
         // Position
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)0);
         glEnableVertexAttribArray(0);
@@ -174,12 +185,12 @@ protected:
 
 class World {
 public:
-    World(const gl::GLContext &glc, const gl::Texture &floorTex, const gl::Texture &wallTex) :
-            m_glc(glc), m_uniman(glc.getUniformManager()), m_floorTex(floorTex), m_wallTex(wallTex) {
+    World(const gl::GLContext &glc, const maze::Maze &maze, const gl::Texture &floorTex, const gl::Texture &wallTex) :
+            m_glc(glc), m_uniman(glc.getUniformManager()), m_maze(maze), m_floorTex(floorTex), m_wallTex(wallTex) {
         m_chunks.reserve(world_data::chunksCountWidth*world_data::chunksCountWidth);
         for (int x = 0; x < world_data::chunksCountWidth; x++) {
             for (int y = 0; y < world_data::chunksCountWidth; y++) {
-                m_chunks.push_back(Chunk { m_glc, { x, y } });
+                m_chunks.push_back(Chunk { m_glc, { x, y }, m_maze.getNode({ x, y }) });
             }
         }
     }
@@ -211,6 +222,7 @@ public:
 protected:
     const gl::GLContext &m_glc;
     const gl::UniformManager &m_uniman;
+    const maze::Maze &m_maze;
     const gl::Texture &m_floorTex;
     const gl::Texture &m_wallTex;
     std::vector<Chunk> m_chunks;
