@@ -85,6 +85,18 @@ public:
         return at(pos);
     }
 
+    const T& const_at(size_t x, size_t y) const {
+        if (x < 0 || x >= m_width)
+            throw error { "grid.hpp", "shrekrooms::Grid::at", "'x' was out of range" };
+        if (y < 0 || y >= m_height)
+            throw error { "grid.hpp", "shrekrooms::Grid::at", "'y' was out of range" };
+        return m_data[x + (y * m_height)];
+    }
+
+    const T& const_at(const glm::ivec2 &pos) const {
+        return const_at(pos.x, pos.y);
+    }
+
 protected:
     T *m_data;
     size_t m_width, m_height, m_size;

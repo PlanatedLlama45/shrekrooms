@@ -3,7 +3,7 @@
 #include "imports.hpp"
 #include "grid.hpp"
 
-#define _MAZE_DESMOS_OUTPUT
+// #define _MAZE_DESMOS_OUTPUT
 
 
 namespace shrekrooms::maze {
@@ -68,6 +68,12 @@ Direction negateDirection(Direction d) {
     return Direction::Null;
 }
 
+const std::array<const Direction, 4> allDirections {
+    Direction::XPos,
+    Direction::XNeg,
+    Direction::ZPos,
+    Direction::ZNeg
+};
 
 struct MazeNode {
     MazeNode() :
@@ -84,18 +90,12 @@ public:
         m_generateMainPath();
         m_addBridges(size, bridgePercent);
 #ifdef _MAZE_DESMOS_OUTPUT
-        const std::array<const Direction, 4> allDirs {
-            Direction::XPos,
-            Direction::XNeg,
-            Direction::ZPos,
-            Direction::ZNeg
-        };
         for (int x = 0; x < size; x++) {
             for (int y = 0; y < size; y++) {
                 glm::ivec2 pos { x, y };
                 MazeNode node = m_nodes[pos];
                 std::cout << '(' << pos.x << ',' << pos.y << ')';
-                for (Direction d : allDirs) {
+                for (Direction d : allDirections) {
                     if ((node.walls & d) == Direction::Null) {
                         auto nxPos = pos + getDirectionVector(d);
                         glm::vec2 hpos = (static_cast<glm::vec2>(nxPos) + static_cast<glm::vec2>(pos)) * 0.5f;
@@ -108,22 +108,19 @@ public:
 #endif
     };
 
+    const MazeNode &getNode(const glm::ivec2 &pos) const {
+        return m_nodes.const_at(pos);
+    }
+
 protected:
     Grid<MazeNode> m_nodes;
 
     Direction m_getRngDirection(const glm::ivec2 &pos, bool nextShouldBeEmpty) {
-        static const std::array<const Direction, 4> allDirs {
-            Direction::XPos,
-            Direction::XNeg,
-            Direction::ZPos,
-            Direction::ZNeg
-        };
-        
         std::vector<Direction> res;
         res.reserve(4);
 
         if (nextShouldBeEmpty) {
-            for (Direction d : allDirs) {
+            for (Direction d : allDirections) {
                 try {
                     MazeNode &node = m_nodes[pos + getDirectionVector(d)];
                     if (node.walls == Direction::All)
@@ -134,7 +131,7 @@ protected:
             }
         } else {
             Direction thisWalls = m_nodes[pos].walls;
-            for (Direction d : allDirs) {
+            for (Direction d : allDirections) {
                 try {
                     m_nodes[pos + getDirectionVector(d)];
                 } catch (error &err) {
