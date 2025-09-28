@@ -40,6 +40,7 @@ struct Hitbox {
 namespace world_data {
     constexpr float chunkSize = 5.0f;
     constexpr float chunkHeight = 5.0f;
+    constexpr float wallThicknessHalf = 0.5f;
     constexpr int chunkFloorTiles = 2;
     constexpr int chunkWallTiles = 1;
 
@@ -95,10 +96,15 @@ protected:
     void m_generateGeometry(const maze::MazeNode &node) {
         GLuint vao, vbo;
 
-        float pmax = 0.5f * world_data::chunkSize;
-        float ymax = 0.5f * world_data::chunkHeight;
-        float tfmax = world_data::chunkFloorTiles;
-        float twmax = world_data::chunkWallTiles;
+        const float pmax = 0.5f * world_data::chunkSize;
+        const float ymax = 0.5f * world_data::chunkHeight;
+        const float wmax = pmax - world_data::wallThicknessHalf - ((m_chunkPos.x + m_chunkPos.y)%2 ? gl::epsilon : 0.0f);
+        const float gmax = pmax + world_data::wallThicknessHalf - gl::epsilon;
+        const float tfmax = world_data::chunkFloorTiles;
+        const float twmax = world_data::chunkWallTiles;
+        const float tgmax = twmax * (2.0f * world_data::wallThicknessHalf / world_data::chunkSize);
+
+        constexpr size_t stride = 6;
 
         std::vector<float> verts {
             // floor
@@ -121,49 +127,86 @@ protected:
         // walls
         if ((node.walls & maze::Direction::XPos) != maze::Direction::Null) {
             verts.insert(verts.end(), {
-                 pmax, -ymax, -pmax,    0.0f,  twmax,   1.0f,
-                 pmax, -ymax,  pmax,    twmax, twmax,   1.0f,
-                 pmax,  ymax,  pmax,    twmax, 0.0f,    1.0f,
-                 pmax, -ymax, -pmax,    0.0f,  twmax,   1.0f,
-                 pmax,  ymax,  pmax,    twmax, 0.0f,    1.0f,
-                 pmax,  ymax, -pmax,    0.0f,  0.0f,    1.0f,
+                // main
+                 wmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
+                 wmax, -ymax,  gmax,    twmax, twmax,   1.0f,
+                 wmax,  ymax,  gmax,    twmax, 0.0f,    1.0f,
+                 wmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
+                 wmax,  ymax,  gmax,    twmax, 0.0f,    1.0f,
+                 wmax,  ymax, -gmax,    0.0f,  0.0f,    1.0f,
+
+                // sides
+                 pmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
+                 wmax, -ymax, -gmax,    tgmax, twmax,   1.0f,
+                 wmax,  ymax, -gmax,    tgmax, 0.0f,    1.0f,
+                 pmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
+                 wmax,  ymax, -gmax,    tgmax, 0.0f,    1.0f,
+                 pmax,  ymax, -gmax,    0.0f,  0.0f,    1.0f,
+
+                 wmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
+                 pmax, -ymax,  gmax,    tgmax, twmax,   1.0f,
+                 pmax,  ymax,  gmax,    tgmax, 0.0f,    1.0f,
+                 wmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
+                 pmax,  ymax,  gmax,    tgmax, 0.0f,    1.0f,
+                 wmax,  ymax,  gmax,    0.0f,  0.0f,    1.0f,
             });
         }
+        // TODO: Fix side not showing up *sometimes*
         if ((node.walls & maze::Direction::XNeg) != maze::Direction::Null) {
             verts.insert(verts.end(), {
-                -pmax, -ymax,  pmax,    0.0f,  twmax,   1.0f,
-                -pmax, -ymax, -pmax,    twmax, twmax,   1.0f,
-                -pmax,  ymax, -pmax,    twmax, 0.0f,    1.0f,
-                -pmax, -ymax,  pmax,    0.0f,  twmax,   1.0f,
-                -pmax,  ymax, -pmax,    twmax, 0.0f,    1.0f,
-                -pmax,  ymax,  pmax,    0.0f,  0.0f,    1.0f,
+                // main
+                -wmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
+                -wmax, -ymax, -gmax,    twmax, twmax,   1.0f,
+                -wmax,  ymax, -gmax,    twmax, 0.0f,    1.0f,
+                -wmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
+                -wmax,  ymax, -gmax,    twmax, 0.0f,    1.0f,
+                -wmax,  ymax,  gmax,    0.0f,  0.0f,    1.0f,
+
+                // sides
+                -wmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
+                -pmax, -ymax, -gmax,    tgmax, twmax,   1.0f,
+                -pmax,  ymax, -gmax,    tgmax, 0.0f,    1.0f,
+                -wmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
+                -pmax,  ymax, -gmax,    tgmax, 0.0f,    1.0f,
+                -wmax,  ymax, -gmax,    0.0f,  0.0f,    1.0f,
+
+                -pmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
+                -wmax, -ymax,  gmax,    tgmax, twmax,   1.0f,
+                -wmax,  ymax,  gmax,    tgmax, 0.0f,    1.0f,
+                -pmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
+                -wmax,  ymax,  gmax,    tgmax, 0.0f,    1.0f,
+                -pmax,  ymax,  gmax,    0.0f,  0.0f,    1.0f,
             });
         }
-        if ((node.walls & maze::Direction::ZPos) != maze::Direction::Null) {
-            verts.insert(verts.end(), {
-                 pmax, -ymax,  pmax,    0.0f,  twmax,   1.0f,
-                -pmax, -ymax,  pmax,    twmax, twmax,   1.0f,
-                -pmax,  ymax,  pmax,    twmax, 0.0f,    1.0f,
-                 pmax, -ymax,  pmax,    0.0f,  twmax,   1.0f,
-                -pmax,  ymax,  pmax,    twmax, 0.0f,    1.0f,
-                 pmax,  ymax,  pmax,    0.0f,  0.0f,    1.0f,
-            });
-        }
-        if ((node.walls & maze::Direction::ZNeg) != maze::Direction::Null) {
-            verts.insert(verts.end(), {
-                -pmax, -ymax, -pmax,    0.0f,  twmax,   1.0f,
-                 pmax, -ymax, -pmax,    twmax, twmax,   1.0f,
-                 pmax,  ymax, -pmax,    twmax, 0.0f,    1.0f,
-                -pmax, -ymax, -pmax,    0.0f,  twmax,   1.0f,
-                 pmax,  ymax, -pmax,    twmax, 0.0f,    1.0f,
-                -pmax,  ymax, -pmax,    0.0f,  0.0f,    1.0f,
-            });
-        }
+        // if ((node.walls & maze::Direction::ZPos) != maze::Direction::Null) {
+        //     verts.insert(verts.end(), {
+        //         // main
+        //          gmax, -ymax,  wmax,    0.0f,  twmax,   1.0f,
+        //         -gmax, -ymax,  wmax,    twmax, twmax,   1.0f,
+        //         -gmax,  ymax,  wmax,    twmax, 0.0f,    1.0f,
+        //          gmax, -ymax,  wmax,    0.0f,  twmax,   1.0f,
+        //         -gmax,  ymax,  wmax,    twmax, 0.0f,    1.0f,
+        //          gmax,  ymax,  wmax,    0.0f,  0.0f,    1.0f,
+
+        //         // sides
+        //     });
+        // }
+        // if ((node.walls & maze::Direction::ZNeg) != maze::Direction::Null) {
+        //     verts.insert(verts.end(), {
+        //         // main
+        //         -gmax, -ymax, -wmax,    0.0f,  twmax,   1.0f,
+        //          gmax, -ymax, -wmax,    twmax, twmax,   1.0f,
+        //          gmax,  ymax, -wmax,    twmax, 0.0f,    1.0f,
+        //         -gmax, -ymax, -wmax,    0.0f,  twmax,   1.0f,
+        //          gmax,  ymax, -wmax,    twmax, 0.0f,    1.0f,
+        //         -gmax,  ymax, -wmax,    0.0f,  0.0f,    1.0f,
+
+        //         // sides
+        //     });
+        // }
 
         glGenVertexArrays(1, &vao);
         glBindVertexArray(vao);
-
-        constexpr size_t stride = 6;
 
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);

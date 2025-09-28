@@ -11,6 +11,7 @@ const glm::vec3 globalUp { 0.0f, 1.0f, 0.0f };
 constexpr float deg2rad = M_PI / 180.0f;
 const glm::mat4 mat4identity { 1.0f };
 constexpr int quadVertCount = 6;
+constexpr float epsilon = 1e-3f;
 
 
 struct Color : public glm::vec4 {
