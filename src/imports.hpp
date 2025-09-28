@@ -27,7 +27,7 @@
 // #include <algorithm>
 #include <array>
 // #include <map>
-// #include <stack>
+#include <stack>
 
 
 namespace shrekrooms {
