@@ -45,6 +45,7 @@ namespace world_data {
     constexpr int chunkWallTiles = 1;
 
     constexpr int chunksCountWidth = 10;
+    constexpr float bridgePercentage = 0.2f;
 };
 
 
