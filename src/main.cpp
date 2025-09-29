@@ -19,7 +19,7 @@ int main(int argc, const char **argv) {
     Player player { glc, { 0.0f, 0.0f, 4.0f }, 0.0f };
     maze::Maze maze { world_data::chunksCountWidth, world_data::bridgePercentage };
     MeshManager meshman { uniman, floorTex, wallTex };
-    World world { glc, meshman, maze, floorTex, wallTex };
+    World world { glc, meshman, maze };
 
     glc.enableShader();
     uniman.setColor({ 1.0f, 0.0f, 1.0f });

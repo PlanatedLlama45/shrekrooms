@@ -278,8 +278,8 @@ protected:
 
 class Chunk {
 public:
-    Chunk(const gl::GLContext &glc, const MeshManager &meshman, const glm::ivec2 &chunkPos, const maze::MazeNode &node) :
-            m_glc(glc), m_uniman(glc.getUniformManager()), m_meshman(meshman), m_chunkPos(chunkPos) {
+    Chunk(const gl::UniformManager &uniman, const MeshManager &meshman, const glm::ivec2 &chunkPos, const maze::MazeNode &node) :
+            m_uniman(uniman), m_meshman(meshman), m_chunkPos(chunkPos) {
         m_addMeshes(node);
 
         glm::vec2 offset = { m_chunkPos.x, m_chunkPos.y };
@@ -308,7 +308,6 @@ public:
     }
 
 protected:
-    const gl::GLContext &m_glc;
     const gl::UniformManager &m_uniman;
     const MeshManager &m_meshman;
     glm::ivec2 m_chunkPos;
@@ -331,12 +330,12 @@ protected:
 
 class World {
 public:
-    World(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze, const gl::Texture &floorTex, const gl::Texture &wallTex) :
-            m_glc(glc), m_uniman(glc.getUniformManager()), m_meshman(meshman), m_maze(maze), m_floorTex(floorTex), m_wallTex(wallTex) {
+    World(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze) :
+            m_glc(glc), m_uniman(glc.getUniformManager()), m_meshman(meshman), m_maze(maze) {
         m_chunks.reserve(world_data::chunksCountWidth*world_data::chunksCountWidth);
         for (int x = 0; x < world_data::chunksCountWidth; x++) {
             for (int y = 0; y < world_data::chunksCountWidth; y++) {
-                m_chunks.emplace_back(m_glc, meshman, glm::ivec2 { x, y }, m_maze.getNode({ x, y }));
+                m_chunks.emplace_back(m_uniman, meshman, glm::ivec2 { x, y }, m_maze.getNode({ x, y }));
             }
         }
     }
@@ -367,8 +366,6 @@ protected:
     const gl::UniformManager &m_uniman;
     const MeshManager &m_meshman;
     const maze::Maze &m_maze;
-    const gl::Texture &m_floorTex;
-    const gl::Texture &m_wallTex;
     std::vector<Chunk> m_chunks;
 };
 
