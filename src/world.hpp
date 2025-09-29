@@ -53,7 +53,7 @@ namespace world_data {
     constexpr float pmax = 0.5f * world_data::chunkSize;                                            \
     constexpr float ymax = 0.5f * world_data::chunkHeight;                                          \
     constexpr float wmax = pmax - world_data::wallThicknessHalf;                                    \
-    constexpr float gmax = pmax + world_data::wallThicknessHalf - 2*gl::epsilon;                    \
+    constexpr float gmax = pmax + world_data::wallThicknessHalf - 2.0f*gl::epsilon;                 \
     constexpr float tfmax = world_data::chunkFloorTiles;                                            \
     constexpr float twmax = world_data::chunkWallTiles;                                             \
     constexpr float tgmax = twmax * (2.0f * world_data::wallThicknessHalf / world_data::chunkSize);
