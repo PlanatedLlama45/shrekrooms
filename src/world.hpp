@@ -48,16 +48,244 @@ namespace world_data {
 };
 
 
+#define _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR()                                           \
+    constexpr float pmax = 0.5f * world_data::chunkSize;                                            \
+    constexpr float ymax = 0.5f * world_data::chunkHeight;                                          \
+    constexpr float wmax = pmax - world_data::wallThicknessHalf;                                    \
+    constexpr float gmax = pmax + world_data::wallThicknessHalf - 2*gl::epsilon;                    \
+    constexpr float tfmax = world_data::chunkFloorTiles;                                            \
+    constexpr float twmax = world_data::chunkWallTiles;                                             \
+    constexpr float tgmax = twmax * (2.0f * world_data::wallThicknessHalf / world_data::chunkSize);
+
+
+class MeshManager {
+public:
+    enum class Mesh {
+        ChunkFloor = 0,
+        ChunkWallXPos,
+        ChunkWallXNeg,
+        ChunkWallZPos,
+        ChunkWallZNeg,
+    };
+
+    MeshManager(const gl::UniformManager &uniman, const gl::Texture &floorTex, const gl::Texture &wallTex) :
+            m_uniman(uniman) {
+        m_textures = { floorTex, wallTex, wallTex, wallTex, wallTex };
+
+        m_genChunkFloor();
+        m_genChunkWallXPos();
+        m_genChunkWallXNeg();
+        m_genChunkWallZPos();
+        m_genChunkWallZneg();
+    }
+
+    void renderMesh(Mesh mesh) const {
+        const size_t meshId = static_cast<size_t>(mesh);
+
+        const gl::Geometry &geo = m_geometries[meshId];
+        const gl::Texture &tex = m_textures[meshId];
+
+        m_uniman.setTexture(tex);
+        glBindVertexArray(geo.vao);
+        glDrawArrays(GL_TRIANGLES, 0, geo.vertCount);
+    }
+
+protected:
+    static constexpr size_t s_meshCount = 5;
+    std::array<gl::Geometry, s_meshCount> m_geometries;
+    std::vector<std::reference_wrapper<const gl::Texture>> m_textures;
+
+    const gl::UniformManager &m_uniman;
+
+    void m_bindGeometry(gl::Geometry &geometry, const std::vector<float> &verts) {
+        static constexpr size_t stride = 5;
+
+        glGenVertexArrays(1, &geometry.vao);
+        glBindVertexArray(geometry.vao);
+        glGenBuffers(1, &geometry.vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo);
+        glBufferData(GL_ARRAY_BUFFER, verts.size()*sizeof(GLfloat), verts.data(), GL_STATIC_DRAW);
+        /* Position */
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)0);
+        glEnableVertexAttribArray(0);
+        /* Texture coordinates */
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
+        glEnableVertexAttribArray(1);
+        geometry.vertCount = verts.size() / stride;
+    }
+
+    void m_genChunkFloor() {
+        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
+
+        gl::Geometry &geometry = m_geometries[static_cast<size_t>(Mesh::ChunkFloor)];
+
+        std::vector<float> verts {
+            // floor
+             pmax, -ymax,  pmax,  tfmax, 0.0f,
+             pmax, -ymax, -pmax,  tfmax, tfmax,
+            -pmax, -ymax,  pmax,  0.0f,  0.0f,
+            -pmax, -ymax,  pmax,  0.0f,  0.0f,
+             pmax, -ymax, -pmax,  tfmax, tfmax,
+            -pmax, -ymax, -pmax,  0.0f,  tfmax,
+
+            // ceiling
+             pmax,  ymax, -pmax,  tfmax, tfmax,
+             pmax,  ymax,  pmax,  tfmax, 0.0f,
+            -pmax,  ymax,  pmax,  0.0f,  0.0f,
+             pmax,  ymax, -pmax,  tfmax, tfmax,
+            -pmax,  ymax,  pmax,  0.0f,  0.0f,
+            -pmax,  ymax, -pmax,  0.0f,  tfmax,
+        };
+
+        m_bindGeometry(geometry, verts);
+    }
+
+    void m_genChunkWallXPos() {
+        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
+
+        gl::Geometry &geometry = m_geometries[static_cast<size_t>(Mesh::ChunkWallXPos)];
+
+        std::vector<float> verts {
+            // main
+             wmax, -ymax, -gmax,    0.0f,  twmax,
+             wmax, -ymax,  gmax,    twmax, twmax,
+             wmax,  ymax,  gmax,    twmax, 0.0f,
+             wmax, -ymax, -gmax,    0.0f,  twmax,
+             wmax,  ymax,  gmax,    twmax, 0.0f,
+             wmax,  ymax, -gmax,    0.0f,  0.0f,
+
+            // sides
+             pmax, -ymax, -gmax,    0.0f,  twmax,
+             wmax, -ymax, -gmax,    tgmax, twmax,
+             wmax,  ymax, -gmax,    tgmax, 0.0f,
+             pmax, -ymax, -gmax,    0.0f,  twmax,
+             wmax,  ymax, -gmax,    tgmax, 0.0f,
+             pmax,  ymax, -gmax,    0.0f,  0.0f,
+
+             wmax, -ymax,  gmax,    0.0f,  twmax,
+             pmax, -ymax,  gmax,    tgmax, twmax,
+             pmax,  ymax,  gmax,    tgmax, 0.0f,
+             wmax, -ymax,  gmax,    0.0f,  twmax,
+             pmax,  ymax,  gmax,    tgmax, 0.0f,
+             wmax,  ymax,  gmax,    0.0f,  0.0f,
+        };
+
+        m_bindGeometry(geometry, verts);
+    }
+
+    void m_genChunkWallXNeg() {
+        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
+
+        gl::Geometry &geometry = m_geometries[static_cast<size_t>(Mesh::ChunkWallXNeg)];
+
+        std::vector<float> verts {
+            // main
+            -wmax, -ymax,  gmax,    0.0f,  twmax,
+            -wmax, -ymax, -gmax,    twmax, twmax,
+            -wmax,  ymax, -gmax,    twmax, 0.0f,
+            -wmax, -ymax,  gmax,    0.0f,  twmax,
+            -wmax,  ymax, -gmax,    twmax, 0.0f,
+            -wmax,  ymax,  gmax,    0.0f,  0.0f,
+
+            // sides
+            -wmax, -ymax, -gmax,    0.0f,  twmax,
+            -pmax, -ymax, -gmax,    tgmax, twmax,
+            -pmax,  ymax, -gmax,    tgmax, 0.0f,
+            -wmax, -ymax, -gmax,    0.0f,  twmax,
+            -pmax,  ymax, -gmax,    tgmax, 0.0f,
+            -wmax,  ymax, -gmax,    0.0f,  0.0f,
+
+            -pmax, -ymax,  gmax,    0.0f,  twmax,
+            -wmax, -ymax,  gmax,    tgmax, twmax,
+            -wmax,  ymax,  gmax,    tgmax, 0.0f,
+            -pmax, -ymax,  gmax,    0.0f,  twmax,
+            -wmax,  ymax,  gmax,    tgmax, 0.0f,
+            -pmax,  ymax,  gmax,    0.0f,  0.0f,
+        };
+
+        m_bindGeometry(geometry, verts);
+    }
+
+    void m_genChunkWallZPos() {
+        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
+
+        gl::Geometry &geometry = m_geometries[static_cast<size_t>(Mesh::ChunkWallZPos)];
+
+        std::vector<float> verts {
+            // main
+             gmax, -ymax,  wmax,    0.0f,  twmax,
+            -gmax, -ymax,  wmax,    twmax, twmax,
+            -gmax,  ymax,  wmax,    twmax, 0.0f,
+             gmax, -ymax,  wmax,    0.0f,  twmax,
+            -gmax,  ymax,  wmax,    twmax, 0.0f,
+             gmax,  ymax,  wmax,    0.0f,  0.0f,
+
+            // sides
+            -gmax, -ymax,  pmax,    0.0f,  twmax,
+            -gmax, -ymax,  gmax,    tgmax, twmax,
+            -gmax,  ymax,  gmax,    tgmax, 0.0f,
+            -gmax, -ymax,  pmax,    0.0f,  twmax,
+            -gmax,  ymax,  gmax,    tgmax, 0.0f,
+            -gmax,  ymax,  pmax,    0.0f,  0.0f,
+
+             gmax, -ymax,  gmax,    0.0f,  twmax,
+             gmax, -ymax,  pmax,    tgmax, twmax,
+             gmax,  ymax,  pmax,    tgmax, 0.0f,
+             gmax, -ymax,  gmax,    0.0f,  twmax,
+             gmax,  ymax,  pmax,    tgmax, 0.0f,
+             gmax,  ymax,  gmax,    0.0f,  0.0f,
+        };
+
+        m_bindGeometry(geometry, verts);
+    }
+
+    void m_genChunkWallZneg() {
+        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
+
+        gl::Geometry &geometry = m_geometries[static_cast<size_t>(Mesh::ChunkWallZNeg)];
+
+        std::vector<float> verts {
+            // main
+            -gmax, -ymax, -wmax,    0.0f,  twmax,
+             gmax, -ymax, -wmax,    twmax, twmax,
+             gmax,  ymax, -wmax,    twmax, 0.0f,
+            -gmax, -ymax, -wmax,    0.0f,  twmax,
+             gmax,  ymax, -wmax,    twmax, 0.0f,
+            -gmax,  ymax, -wmax,    0.0f,  0.0f,
+
+            // sides
+             gmax, -ymax, -pmax,    0.0f,  twmax,
+             gmax, -ymax, -gmax,    tgmax, twmax,
+             gmax,  ymax, -gmax,    tgmax, 0.0f,
+             gmax, -ymax, -pmax,    0.0f,  twmax,
+             gmax,  ymax, -gmax,    tgmax, 0.0f,
+             gmax,  ymax, -pmax,    0.0f,  0.0f,
+
+            -gmax, -ymax, -gmax,    0.0f,  twmax,
+            -gmax, -ymax, -pmax,    tgmax, twmax,
+            -gmax,  ymax, -pmax,    tgmax, 0.0f,
+            -gmax, -ymax, -gmax,    0.0f,  twmax,
+            -gmax,  ymax, -pmax,    tgmax, 0.0f,
+            -gmax,  ymax, -gmax,    0.0f,  0.0f,
+        };
+
+        m_bindGeometry(geometry, verts);
+    }
+
+};
+
+
 class Chunk {
 public:
-
-    Chunk(const gl::GLContext &glc, const glm::ivec2 &chunkPos, const maze::MazeNode &node) : 
-            m_glc(glc), m_uniman(glc.getUniformManager()), m_chunkPos(chunkPos) {
-        if (s_geometry.use_count() == 0)
-            m_generateGeometry(node);
+    Chunk(const gl::GLContext &glc, const MeshManager &meshman, const glm::ivec2 &chunkPos, const maze::MazeNode &node) :
+            m_glc(glc), m_uniman(glc.getUniformManager()), m_meshman(meshman), m_chunkPos(chunkPos) {
+        m_addMeshes(node);
 
         glm::vec2 offset = { m_chunkPos.x, m_chunkPos.y };
         offset *= world_data::chunkSize;
+        if ((m_chunkPos.x + m_chunkPos.y) % 2 == 0)
+            offset += glm::vec2 { gl::epsilon, gl::epsilon };
+
         m_chunkTranslateMat = glm::translate(gl::mat4identity, { offset.x, 0.0f, offset.y });
 
         float wmax = 0.5f * world_data::chunkSize;
@@ -67,17 +295,11 @@ public:
         };
     }
 
-    ~Chunk() {
-        if (s_geometry.use_count() == 1) {
-            glDeleteVertexArrays(1, &s_geometry->vao);
-            glDeleteBuffers(1, &s_geometry->vbo);
-        }
-    }
-
     void draw() const {
-        m_uniman.setTranslateMatrix(m_chunkTranslateMat);
-        glBindVertexArray(s_geometry->vao);
-        glDrawArrays(GL_TRIANGLES, 0, gl::quadVertCount*6);
+        for (MeshManager::Mesh mesh : m_meshes) {
+            m_uniman.setTranslateMatrix(m_chunkTranslateMat);
+            m_meshman.renderMesh(mesh);
+        }
     }
 
     const Hitbox &getHitbox() const {
@@ -87,162 +309,39 @@ public:
 protected:
     const gl::GLContext &m_glc;
     const gl::UniformManager &m_uniman;
+    const MeshManager &m_meshman;
     glm::ivec2 m_chunkPos;
     glm::mat4 m_chunkTranslateMat;
-    std::shared_ptr<gl::Geometry> s_geometry;
+    std::vector<MeshManager::Mesh> m_meshes;
     Hitbox m_hitbox;
 
-    // TODO: make walls appear depending on node.walls value
-    void m_generateGeometry(const maze::MazeNode &node) {
-        GLuint vao, vbo;
-
-        const float pmax = 0.5f * world_data::chunkSize;
-        const float ymax = 0.5f * world_data::chunkHeight;
-        const float wmax = pmax - world_data::wallThicknessHalf - ((m_chunkPos.x + m_chunkPos.y)%2 ? gl::epsilon : 0.0f);
-        const float gmax = pmax + world_data::wallThicknessHalf - gl::epsilon;
-        const float tfmax = world_data::chunkFloorTiles;
-        const float twmax = world_data::chunkWallTiles;
-        const float tgmax = twmax * (2.0f * world_data::wallThicknessHalf / world_data::chunkSize);
-
-        constexpr size_t stride = 6;
-
-        std::vector<float> verts {
-            // floor
-             pmax, -ymax,  pmax,  tfmax, 0.0f,      0.0f,
-             pmax, -ymax, -pmax,  tfmax, tfmax,     0.0f,
-            -pmax, -ymax,  pmax,  0.0f,  0.0f,      0.0f,
-            -pmax, -ymax,  pmax,  0.0f,  0.0f,      0.0f,
-             pmax, -ymax, -pmax,  tfmax, tfmax,     0.0f,
-            -pmax, -ymax, -pmax,  0.0f,  tfmax,     0.0f,
-
-            // ceiling
-             pmax,  ymax, -pmax,  tfmax, tfmax,     0.0f,
-             pmax,  ymax,  pmax,  tfmax, 0.0f,      0.0f,
-            -pmax,  ymax,  pmax,  0.0f,  0.0f,      0.0f,
-             pmax,  ymax, -pmax,  tfmax, tfmax,     0.0f,
-            -pmax,  ymax,  pmax,  0.0f,  0.0f,      0.0f,
-            -pmax,  ymax, -pmax,  0.0f,  tfmax,     0.0f,
-        };
+    void m_addMeshes(const maze::MazeNode &node) {
+        // floor
+        m_meshes.push_back(MeshManager::Mesh::ChunkFloor);
 
         // walls
-        if ((node.walls & maze::Direction::XPos) != maze::Direction::Null) {
-            verts.insert(verts.end(), {
-                // main
-                 wmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
-                 wmax, -ymax,  gmax,    twmax, twmax,   1.0f,
-                 wmax,  ymax,  gmax,    twmax, 0.0f,    1.0f,
-                 wmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
-                 wmax,  ymax,  gmax,    twmax, 0.0f,    1.0f,
-                 wmax,  ymax, -gmax,    0.0f,  0.0f,    1.0f,
-
-                // sides
-                 pmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
-                 wmax, -ymax, -gmax,    tgmax, twmax,   1.0f,
-                 wmax,  ymax, -gmax,    tgmax, 0.0f,    1.0f,
-                 pmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
-                 wmax,  ymax, -gmax,    tgmax, 0.0f,    1.0f,
-                 pmax,  ymax, -gmax,    0.0f,  0.0f,    1.0f,
-
-                 wmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
-                 pmax, -ymax,  gmax,    tgmax, twmax,   1.0f,
-                 pmax,  ymax,  gmax,    tgmax, 0.0f,    1.0f,
-                 wmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
-                 pmax,  ymax,  gmax,    tgmax, 0.0f,    1.0f,
-                 wmax,  ymax,  gmax,    0.0f,  0.0f,    1.0f,
-            });
-        }
-        // TODO: Fix side not showing up *sometimes*
-        if ((node.walls & maze::Direction::XNeg) != maze::Direction::Null) {
-            verts.insert(verts.end(), {
-                // main
-                -wmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
-                -wmax, -ymax, -gmax,    twmax, twmax,   1.0f,
-                -wmax,  ymax, -gmax,    twmax, 0.0f,    1.0f,
-                -wmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
-                -wmax,  ymax, -gmax,    twmax, 0.0f,    1.0f,
-                -wmax,  ymax,  gmax,    0.0f,  0.0f,    1.0f,
-
-                // sides
-                -wmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
-                -pmax, -ymax, -gmax,    tgmax, twmax,   1.0f,
-                -pmax,  ymax, -gmax,    tgmax, 0.0f,    1.0f,
-                -wmax, -ymax, -gmax,    0.0f,  twmax,   1.0f,
-                -pmax,  ymax, -gmax,    tgmax, 0.0f,    1.0f,
-                -wmax,  ymax, -gmax,    0.0f,  0.0f,    1.0f,
-
-                -pmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
-                -wmax, -ymax,  gmax,    tgmax, twmax,   1.0f,
-                -wmax,  ymax,  gmax,    tgmax, 0.0f,    1.0f,
-                -pmax, -ymax,  gmax,    0.0f,  twmax,   1.0f,
-                -wmax,  ymax,  gmax,    tgmax, 0.0f,    1.0f,
-                -pmax,  ymax,  gmax,    0.0f,  0.0f,    1.0f,
-            });
-        }
-        // if ((node.walls & maze::Direction::ZPos) != maze::Direction::Null) {
-        //     verts.insert(verts.end(), {
-        //         // main
-        //          gmax, -ymax,  wmax,    0.0f,  twmax,   1.0f,
-        //         -gmax, -ymax,  wmax,    twmax, twmax,   1.0f,
-        //         -gmax,  ymax,  wmax,    twmax, 0.0f,    1.0f,
-        //          gmax, -ymax,  wmax,    0.0f,  twmax,   1.0f,
-        //         -gmax,  ymax,  wmax,    twmax, 0.0f,    1.0f,
-        //          gmax,  ymax,  wmax,    0.0f,  0.0f,    1.0f,
-
-        //         // sides
-        //     });
-        // }
-        // if ((node.walls & maze::Direction::ZNeg) != maze::Direction::Null) {
-        //     verts.insert(verts.end(), {
-        //         // main
-        //         -gmax, -ymax, -wmax,    0.0f,  twmax,   1.0f,
-        //          gmax, -ymax, -wmax,    twmax, twmax,   1.0f,
-        //          gmax,  ymax, -wmax,    twmax, 0.0f,    1.0f,
-        //         -gmax, -ymax, -wmax,    0.0f,  twmax,   1.0f,
-        //          gmax,  ymax, -wmax,    twmax, 0.0f,    1.0f,
-        //         -gmax,  ymax, -wmax,    0.0f,  0.0f,    1.0f,
-
-        //         // sides
-        //     });
-        // }
-
-        glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
-
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, verts.size()*sizeof(GLfloat), verts.data(), GL_STATIC_DRAW);
-        // Position
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)0);
-        glEnableVertexAttribArray(0);
-        // Texture coordinates
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
-        glEnableVertexAttribArray(1);
-        // Texture id
-        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)(5*sizeof(GLfloat)));
-        glEnableVertexAttribArray(2);
-
-        s_geometry = std::make_unique<gl::Geometry>(vao, vbo);
+        if ((node.walls & maze::Direction::XPos) != maze::Direction::Null) m_meshes.push_back(MeshManager::Mesh::ChunkWallXPos);
+        if ((node.walls & maze::Direction::XNeg) != maze::Direction::Null) m_meshes.push_back(MeshManager::Mesh::ChunkWallXNeg);
+        if ((node.walls & maze::Direction::ZPos) != maze::Direction::Null) m_meshes.push_back(MeshManager::Mesh::ChunkWallZPos);
+        if ((node.walls & maze::Direction::ZNeg) != maze::Direction::Null) m_meshes.push_back(MeshManager::Mesh::ChunkWallZNeg);
     }
 };
 
 
 class World {
 public:
-    World(const gl::GLContext &glc, const maze::Maze &maze, const gl::Texture &floorTex, const gl::Texture &wallTex) :
-            m_glc(glc), m_uniman(glc.getUniformManager()), m_maze(maze), m_floorTex(floorTex), m_wallTex(wallTex) {
+    World(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze, const gl::Texture &floorTex, const gl::Texture &wallTex) :
+            m_glc(glc), m_uniman(glc.getUniformManager()), m_meshman(meshman), m_maze(maze), m_floorTex(floorTex), m_wallTex(wallTex) {
         m_chunks.reserve(world_data::chunksCountWidth*world_data::chunksCountWidth);
         for (int x = 0; x < world_data::chunksCountWidth; x++) {
             for (int y = 0; y < world_data::chunksCountWidth; y++) {
-                m_chunks.push_back(Chunk { m_glc, { x, y }, m_maze.getNode({ x, y }) });
+                m_chunks.emplace_back(m_glc, meshman, glm::ivec2 { x, y }, m_maze.getNode({ x, y }));
             }
         }
     }
 
     void draw() const {
         m_glc.enableShader();
-
-        m_uniman.setTexture(0, m_floorTex);
-        m_uniman.setTexture(1, m_wallTex);
 
         for (const Chunk &ch : m_chunks)
             ch.draw();
@@ -265,6 +364,7 @@ public:
 protected:
     const gl::GLContext &m_glc;
     const gl::UniformManager &m_uniman;
+    const MeshManager &m_meshman;
     const maze::Maze &m_maze;
     const gl::Texture &m_floorTex;
     const gl::Texture &m_wallTex;

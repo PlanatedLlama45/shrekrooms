@@ -24,13 +24,19 @@ struct Color : public glm::vec4 {
 
 
 struct Geometry {
+    GLuint vao, vbo;
+    size_t vertCount;
+
     Geometry() :
         vao(0), vbo(0) { }
 
     Geometry(GLuint vao, GLuint vbo) :
         vao(vao), vbo(vbo) { }
 
-    GLuint vao, vbo;
+    ~Geometry() {
+        glDeleteVertexArrays(1, &vao);
+        glDeleteBuffers(1, &vbo);
+    }
 };
 
 
@@ -89,8 +95,7 @@ public:
     }
 
     // Uniforms
-    void setTexture(GLuint id, const Texture &tex) const {
-        glActiveTexture(GL_TEXTURE0 + id);
+    void setTexture(const Texture &tex) const {
         glBindTexture(GL_TEXTURE_2D, tex.getId());
     }
 
