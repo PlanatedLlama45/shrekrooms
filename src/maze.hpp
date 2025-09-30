@@ -109,7 +109,7 @@ public:
     };
 
     const MazeNode &getNode(const glm::ivec2 &pos) const {
-        return m_nodes.const_at(pos);
+        return m_nodes.at(pos);
     }
 
 protected:

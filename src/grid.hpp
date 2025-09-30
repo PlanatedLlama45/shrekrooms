@@ -69,7 +69,7 @@ public:
     }
 
     // Value indexing
-    T &at(size_t x, size_t y) {
+    const T &at(size_t x, size_t y) const {
         if (x < 0 || x >= m_width)
             throw error { "grid.hpp", "shrekrooms::Grid::at", "'x' was out of range" };
         if (y < 0 || y >= m_height)
@@ -77,24 +77,16 @@ public:
         return m_data[x + (y * m_height)];
     }
 
-    T &at(const glm::ivec2 &pos) {
+    const T &at(const glm::ivec2 &pos) const {
         return at(pos.x, pos.y);
     }
 
     T &operator [](const glm::ivec2 &pos) {
-        return at(pos);
-    }
-
-    const T& const_at(size_t x, size_t y) const {
-        if (x < 0 || x >= m_width)
+        if (pos.x < 0 || pos.x >= m_width)
             throw error { "grid.hpp", "shrekrooms::Grid::at", "'x' was out of range" };
-        if (y < 0 || y >= m_height)
+        if (pos.y < 0 || pos.y >= m_height)
             throw error { "grid.hpp", "shrekrooms::Grid::at", "'y' was out of range" };
-        return m_data[x + (y * m_height)];
-    }
-
-    const T& const_at(const glm::ivec2 &pos) const {
-        return const_at(pos.x, pos.y);
+        return m_data[pos.x + (pos.y * m_height)];
     }
 
 protected:
