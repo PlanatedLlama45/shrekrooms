@@ -62,7 +62,9 @@ namespace world_data {
 class MeshManager {
 public:
     enum class Mesh {
-        ChunkFloor = 0,
+        Null = 0,
+
+        ChunkFloor,
         ChunkWallXPos,
         ChunkWallXNeg,
         ChunkWallZPos,
@@ -70,7 +72,7 @@ public:
     };
 
     MeshManager(const gl::UniformManager &uniman, const gl::Texture &floorTex, const gl::Texture &wallTex) :
-            m_uniman(uniman) {
+            m_uniman(uniman), m_textures() {
         m_textures = { floorTex, wallTex, wallTex, wallTex, wallTex };
 
         m_genChunkFloor();
@@ -81,10 +83,13 @@ public:
     }
 
     void renderMesh(Mesh mesh) const {
-        const size_t meshId = static_cast<size_t>(mesh);
+        if (mesh == Mesh::Null)
+            return;
+
+        const size_t meshId = s_meshToId(mesh);
 
         const gl::Geometry &geo = m_geometries[meshId];
-        const gl::Texture &tex = m_textures[meshId];
+        const gl::Texture &tex = m_textures[meshId]->get();
 
         m_uniman.setTexture(tex);
         glBindVertexArray(geo.vao);
@@ -94,7 +99,11 @@ public:
 protected:
     static constexpr size_t s_meshCount = 5;
     std::array<gl::Geometry, s_meshCount> m_geometries;
-    std::vector<std::reference_wrapper<const gl::Texture>> m_textures;
+    std::array<std::optional<std::reference_wrapper<const gl::Texture>>, s_meshCount> m_textures;
+
+    static constexpr size_t s_meshToId(Mesh mesh) {
+        return static_cast<size_t>(mesh) - 1;
+    }
 
     const gl::UniformManager &m_uniman;
 
@@ -118,7 +127,7 @@ protected:
     void m_genChunkFloor() {
         _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
 
-        gl::Geometry &geometry = m_geometries[static_cast<size_t>(Mesh::ChunkFloor)];
+        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkFloor)];
 
         std::vector<float> verts {
             // floor
@@ -144,7 +153,7 @@ protected:
     void m_genChunkWallXPos() {
         _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
 
-        gl::Geometry &geometry = m_geometries[static_cast<size_t>(Mesh::ChunkWallXPos)];
+        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallXPos)];
 
         std::vector<float> verts {
             // main
@@ -177,7 +186,7 @@ protected:
     void m_genChunkWallXNeg() {
         _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
 
-        gl::Geometry &geometry = m_geometries[static_cast<size_t>(Mesh::ChunkWallXNeg)];
+        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallXNeg)];
 
         std::vector<float> verts {
             // main
@@ -210,7 +219,7 @@ protected:
     void m_genChunkWallZPos() {
         _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
 
-        gl::Geometry &geometry = m_geometries[static_cast<size_t>(Mesh::ChunkWallZPos)];
+        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallZPos)];
 
         std::vector<float> verts {
             // main
@@ -243,7 +252,7 @@ protected:
     void m_genChunkWallZneg() {
         _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
 
-        gl::Geometry &geometry = m_geometries[static_cast<size_t>(Mesh::ChunkWallZNeg)];
+        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallZNeg)];
 
         std::vector<float> verts {
             // main
@@ -279,7 +288,7 @@ protected:
 class Chunk {
 public:
     Chunk(const gl::UniformManager &uniman, const MeshManager &meshman, const glm::ivec2 &chunkPos, const maze::MazeNode &node) :
-            m_uniman(uniman), m_meshman(meshman), m_chunkPos(chunkPos) {
+            m_uniman(uniman), m_meshman(meshman), m_chunkPos(chunkPos), m_meshes() {
         m_addMeshes(node);
 
         glm::vec2 offset = { m_chunkPos.x, m_chunkPos.y };
@@ -312,18 +321,18 @@ protected:
     const MeshManager &m_meshman;
     glm::ivec2 m_chunkPos;
     glm::mat4 m_chunkTranslateMat;
-    std::vector<MeshManager::Mesh> m_meshes;
+    std::array<MeshManager::Mesh, 5> m_meshes;
     Hitbox m_hitbox;
 
     void m_addMeshes(const maze::MazeNode &node) {
         // floor
-        m_meshes.push_back(MeshManager::Mesh::ChunkFloor);
+        m_meshes[0] = MeshManager::Mesh::ChunkFloor;
 
         // walls
-        if ((node.walls & maze::Direction::XPos) != maze::Direction::Null) m_meshes.push_back(MeshManager::Mesh::ChunkWallXPos);
-        if ((node.walls & maze::Direction::XNeg) != maze::Direction::Null) m_meshes.push_back(MeshManager::Mesh::ChunkWallXNeg);
-        if ((node.walls & maze::Direction::ZPos) != maze::Direction::Null) m_meshes.push_back(MeshManager::Mesh::ChunkWallZPos);
-        if ((node.walls & maze::Direction::ZNeg) != maze::Direction::Null) m_meshes.push_back(MeshManager::Mesh::ChunkWallZNeg);
+        if ((node.walls & maze::Direction::XPos) != maze::Direction::Null) m_meshes[1] = MeshManager::Mesh::ChunkWallXPos;
+        if ((node.walls & maze::Direction::XNeg) != maze::Direction::Null) m_meshes[2] = MeshManager::Mesh::ChunkWallXNeg;
+        if ((node.walls & maze::Direction::ZPos) != maze::Direction::Null) m_meshes[3] = MeshManager::Mesh::ChunkWallZPos;
+        if ((node.walls & maze::Direction::ZNeg) != maze::Direction::Null) m_meshes[4] = MeshManager::Mesh::ChunkWallZNeg;
     }
 };
 

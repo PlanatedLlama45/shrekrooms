@@ -3,8 +3,6 @@
 #include "imports.hpp"
 #include "grid.hpp"
 
-// #define _MAZE_DESMOS_OUTPUT
-
 
 namespace shrekrooms::maze {
 
@@ -89,7 +87,7 @@ public:
             m_nodes(size, size) {
         m_generateMainPath();
         m_addBridges(size, bridgePercent);
-#ifdef _MAZE_DESMOS_OUTPUT
+#if (_MAZE_DESMOS_OUTPUT == 1)
         for (int x = 0; x < size; x++) {
             for (int y = 0; y < size; y++) {
                 glm::ivec2 pos { x, y };
