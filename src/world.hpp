@@ -8,7 +8,29 @@
 namespace shrekrooms {
 
 
+struct Collision {
+    bool isColliding;
+    glm::vec2 cancelVector;
+
+    Collision() :
+        isColliding(false), cancelVector({ 0.0f, 0.0f }) { }
+
+    Collision(bool isColliding, glm::vec2 cancelVector) :
+        isColliding(isColliding), cancelVector(cancelVector) { }
+
+    void addOtherCollision(const Collision &coll) {
+        if (!coll.isColliding)
+            return;
+        isColliding = true;
+        cancelVector += coll.cancelVector;
+    }
+
+};
+
+
 struct Hitbox {
+    glm::vec2 posMin, posMax;
+
     Hitbox() :
         posMin(0.0f), posMax(0.0f) { }
     
@@ -22,18 +44,15 @@ struct Hitbox {
         );
     }
 
-    // pair { bool, vec2 delta or {0,0} if no intersection }
-    std::pair<bool, glm::vec2> getCircleIntersection(const glm::vec2 &pos, float radius) const {
+    Collision getCircleIntersection(const glm::vec2 &pos, float radius) const {
         glm::vec2 closest = glm::clamp(pos, posMin, posMax);
         float dist = glm::distance(pos, closest);
         if (radius < dist)
-            return { false, { 0.0f, 0.0f } };
+            return { };
         glm::vec2 dir = glm::normalize(pos - closest);
         dir *= (radius - dist);
         return { true, dir };
     }
-
-    glm::vec2 posMin, posMax;
 };
 
 
@@ -287,22 +306,18 @@ protected:
 
 class Chunk {
 public:
-    Chunk(const gl::UniformManager &uniman, const MeshManager &meshman, const glm::ivec2 &chunkPos, const maze::MazeNode &node) :
-            m_uniman(uniman), m_meshman(meshman), m_chunkPos(chunkPos), m_meshes() {
-        m_addMeshes(node);
+    Chunk(const gl::UniformManager &uniman, const MeshManager &meshman, const glm::vec2 &chunkPos, const maze::MazeNode &node) :
+            m_uniman(uniman), m_meshman(meshman), m_chunkPos(chunkPos), m_meshes(), m_walls() {
+        m_setWalls(node);
+        m_addMeshes();
 
-        glm::vec2 offset = { m_chunkPos.x, m_chunkPos.y };
-        offset *= world_data::chunkSize;
-        if ((m_chunkPos.x + m_chunkPos.y) % 2 == 0)
+        glm::vec2 offset = m_chunkPos * world_data::chunkSize;
+        if (static_cast<int>(m_chunkPos.x + m_chunkPos.y) % 2 == 0)
             offset += glm::vec2 { gl::epsilon, gl::epsilon };
 
         m_chunkTranslateMat = glm::translate(gl::mat4identity, { offset.x, 0.0f, offset.y });
 
-        float wmax = 0.5f * world_data::chunkSize;
-        m_hitbox = Hitbox {
-            offset - glm::vec2 { wmax },
-            offset + glm::vec2 { wmax },
-        };
+        m_genHitboxes(offset);
     }
 
     void draw() const {
@@ -312,28 +327,92 @@ public:
         }
     }
 
-    const Hitbox &getHitbox() const {
-        return m_hitbox;
+    // TODO: false if player far enough
+    bool playerCanCollide(const glm::vec2 &pos) const {
+        return true;
+    }
+
+    void addThisToCollision(Collision &coll, const glm::vec2 &pos, float radius) const {
+        bool hadColl = coll.isColliding;
+        for (size_t i = 0; i < s_wallCount; i++) {
+            if (m_walls[i])
+                coll.addOtherCollision(m_hitboxes[i].getCircleIntersection(pos, radius));
+        }
+        if (!hadColl && coll.isColliding)
+            std::cout << "Collision occured; chunk pos: " << m_chunkPos.x << ", " << m_chunkPos.y << '\n';
+    }
+
+    Collision getCollision(const glm::vec2 &pos, float radius) const {
+        Collision res { };
+        addThisToCollision(res, pos, radius);
+        return res;
     }
 
 protected:
+    static constexpr size_t s_wallCount = 4;
+
     const gl::UniformManager &m_uniman;
     const MeshManager &m_meshman;
-    glm::ivec2 m_chunkPos;
+    glm::vec2 m_chunkPos;
     glm::mat4 m_chunkTranslateMat;
-    std::array<MeshManager::Mesh, 5> m_meshes;
-    Hitbox m_hitbox;
+    std::array<MeshManager::Mesh, (s_wallCount + 1)> m_meshes;
+    /*
+     * 0: x+
+     * 1: x-
+     * 2: z+
+     * 3: z-
+    */
+    std::array<bool, s_wallCount> m_walls;
+    std::array<Hitbox, s_wallCount> m_hitboxes;
 
-    void m_addMeshes(const maze::MazeNode &node) {
+    void m_setWalls(const maze::MazeNode &node) {
+        m_walls[0] = ((node.walls & maze::Direction::XPos) != maze::Direction::Null);
+        m_walls[1] = ((node.walls & maze::Direction::XNeg) != maze::Direction::Null);
+        m_walls[2] = ((node.walls & maze::Direction::ZPos) != maze::Direction::Null);
+        m_walls[3] = ((node.walls & maze::Direction::ZNeg) != maze::Direction::Null);
+    }
+
+    void m_addMeshes() {
         // floor
         m_meshes[0] = MeshManager::Mesh::ChunkFloor;
 
         // walls
-        if ((node.walls & maze::Direction::XPos) != maze::Direction::Null) m_meshes[1] = MeshManager::Mesh::ChunkWallXPos;
-        if ((node.walls & maze::Direction::XNeg) != maze::Direction::Null) m_meshes[2] = MeshManager::Mesh::ChunkWallXNeg;
-        if ((node.walls & maze::Direction::ZPos) != maze::Direction::Null) m_meshes[3] = MeshManager::Mesh::ChunkWallZPos;
-        if ((node.walls & maze::Direction::ZNeg) != maze::Direction::Null) m_meshes[4] = MeshManager::Mesh::ChunkWallZNeg;
+        if (m_walls[0]) m_meshes[1] = MeshManager::Mesh::ChunkWallXPos;
+        if (m_walls[1]) m_meshes[2] = MeshManager::Mesh::ChunkWallXNeg;
+        if (m_walls[2]) m_meshes[3] = MeshManager::Mesh::ChunkWallZPos;
+        if (m_walls[3]) m_meshes[4] = MeshManager::Mesh::ChunkWallZNeg;
     }
+
+    void m_genHitboxes(const glm::vec2 &offset) {
+        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
+
+        // x+
+        m_hitboxes[0] = Hitbox {
+            {  wmax, -gmax },
+            {  pmax,  gmax }
+        };
+        // x-
+        m_hitboxes[1] = Hitbox {
+            { -pmax, -gmax },
+            { -wmax,  gmax }
+        };
+        // z+
+        m_hitboxes[2] = Hitbox {
+            { -gmax,  wmax },
+            {  gmax,  gmax }
+        };
+        // z-
+        m_hitboxes[3] = Hitbox {
+            { -gmax, -gmax },
+            {  gmax, -wmax }
+        };
+
+        for (Hitbox &hb : m_hitboxes) {
+            hb.posMin += offset;
+            hb.posMax += offset;
+        }
+    }
+
 };
 
 
@@ -344,7 +423,7 @@ public:
         m_chunks.reserve(world_data::chunksCountWidth*world_data::chunksCountWidth);
         for (int x = 0; x < world_data::chunksCountWidth; x++) {
             for (int y = 0; y < world_data::chunksCountWidth; y++) {
-                m_chunks.emplace_back(m_uniman, meshman, glm::ivec2 { x, y }, m_maze.getNode({ x, y }));
+                m_chunks.emplace_back(m_uniman, meshman, glm::vec2 { static_cast<float>(x), static_cast<float>(y) }, m_maze.getNode({ x, y }));
             }
         }
     }
@@ -356,15 +435,11 @@ public:
             ch.draw();
     }
     
-    // pair { bool, vec2 delta or {0,0} if no intersection }
-    std::pair<bool, glm::vec2> getPlayerIntersection(const glm::vec2 &pos, float radius) const {
-        std::pair<bool, glm::vec2> res { false, { 0.0f, 0.0f } };
+    Collision getPlayerCollision(const glm::vec2 &pos, float radius) const {
+        Collision res { };
         for (const Chunk &ch : m_chunks) {
-            auto inter = ch.getHitbox().getCircleIntersection(pos, radius);
-            if (inter.first) {
-                res.first = true;
-                res.second += inter.second;
-            }
+            if (ch.playerCanCollide(pos))
+                ch.addThisToCollision(res, pos, radius);
         }
         return res;
     }
@@ -376,6 +451,7 @@ protected:
     const MeshManager &m_meshman;
     const maze::Maze &m_maze;
     std::vector<Chunk> m_chunks;
+
 };
 
 

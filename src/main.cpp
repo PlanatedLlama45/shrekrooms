@@ -16,7 +16,7 @@ int main(int argc, const char **argv) {
 
     gl::Texture floorTex { "../img/floor.jpg" };
     gl::Texture wallTex { "../img/wall.jpg" };
-    Player player { glc, { 0.0f, 0.0f, 4.0f }, 0.0f };
+    Player player { glc, { 0.0f, 0.0f, 0.0f }, 0.0f };
     maze::Maze maze { world_data::chunksCountWidth, world_data::bridgePercentage };
     MeshManager meshman { uniman, floorTex, wallTex };
     World world { glc, meshman, maze };

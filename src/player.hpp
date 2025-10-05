@@ -10,9 +10,9 @@ namespace shrekrooms {
 
 namespace player_data {
 
-    constexpr float mouseSensitivity    = 10.0f;
+    constexpr float mouseSensitivity    = 7.0f;
     constexpr float walkSpeed           = 8.0f;
-    constexpr float radius              = 1.0f;
+    constexpr float radius              = 0.5f;
 
 } // namespace player_data
 
@@ -62,9 +62,9 @@ public:
             m_pos += player_data::walkSpeed * dPos * dt;
         }
 
-        // auto inter = world.getPlayerIntersection({ m_pos.x, m_pos.z }, player_data::radius);
-        // if (inter.first)
-        //     m_pos += glm::vec3 { inter.second.x, 0.0f, inter.second.y };
+        Collision coll = world.getPlayerCollision({ m_pos.x, m_pos.z }, player_data::radius);
+        if (coll.isColliding)
+            m_pos += glm::vec3 { coll.cancelVector.x, 0.0f, coll.cancelVector.y };
 
         m_glc.enableShader();
         glm::mat4 view = glm::lookAt(m_pos, m_pos + forw, gl::globalUp);
