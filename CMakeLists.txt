@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(Shrekrooms VERSION 1.0.0)
 
-set(ENABLE_CONSOLE TRUE)
+set(ENABLE_CONSOLE FALSE)
 
 find_package(OpenGL REQUIRED)
 
