@@ -1,6 +1,6 @@
 #include "glc.hpp"
 #include "player.hpp"
-#include "world.hpp"
+#include "shrek.hpp"
 
 
 int main(int argc, const char **argv) {
@@ -35,11 +35,16 @@ int main(int argc, const char **argv) {
         glfwPollEvents();
 
         player.update(world, deltaTime);
+        shrek.update(world, player, deltaTime);
+
+        if (shrek.isCollidingPlayer(player))
+            break;
 
         glc.enableShader();
         glc.clearBackground();
 
         world.draw();
+        shrek.draw(player);
 
         glc.drawBuffer();
         deltaTime = glfwGetTime() - currentTime;

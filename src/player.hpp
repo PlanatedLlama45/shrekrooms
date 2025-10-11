@@ -13,6 +13,14 @@ public:
     Player(const gl::GLContext &glc, const glm::vec3 &pos, float cameraRot) : 
         m_glc(glc), m_uniman(glc.getUniformManager()), m_pos(pos), m_cameraRot(cameraRot) { }
 
+    const glm::vec3 &getPos() const {
+        return m_pos;
+    }
+
+    float getCameraRot() const {
+        return m_cameraRot;
+    }
+
     void update(const World &world, float dt) {
         if (!m_glc.isWindowFocused())
             return;
