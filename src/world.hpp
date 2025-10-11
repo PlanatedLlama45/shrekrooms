@@ -333,13 +333,10 @@ public:
     }
 
     void addThisToCollision(Collision &coll, const glm::vec2 &pos, float radius) const {
-        bool hadColl = coll.isColliding;
         for (size_t i = 0; i < s_wallCount; i++) {
             if (m_walls[i])
                 coll.addOtherCollision(m_hitboxes[i].getCircleIntersection(pos, radius));
         }
-        if (!hadColl && coll.isColliding)
-            std::cout << "Collision occured; chunk pos: " << m_chunkPos.x << ", " << m_chunkPos.y << '\n';
     }
 
     Collision getCollision(const glm::vec2 &pos, float radius) const {
