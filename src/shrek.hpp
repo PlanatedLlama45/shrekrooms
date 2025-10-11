@@ -113,6 +113,7 @@ protected:
 
         m_geometry = gl::Geometry { vao, vbo };
     }
+
 };
 
 

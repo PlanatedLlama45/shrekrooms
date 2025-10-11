@@ -64,13 +64,13 @@ public:
         m_setWalls(node);
         m_addMeshes();
 
-        glm::vec2 offset = m_chunkPos * defines::world::chunkSize;
+        m_chunkOffset = m_chunkPos * defines::world::chunkSize;
         if (static_cast<int>(m_chunkPos.x + m_chunkPos.y) % 2 == 0)
-            offset += glm::vec2 { defines::epsilon, defines::epsilon };
+            m_chunkOffset += glm::vec2 { defines::epsilon, defines::epsilon };
 
-        m_chunkTranslateMat = glm::translate(defines::mat4identity, { offset.x, 0.0f, offset.y });
+        m_chunkTranslateMat = glm::translate(defines::mat4identity, { m_chunkOffset.x, 0.0f, m_chunkOffset.y });
 
-        m_genHitboxes(offset);
+        m_genHitboxes();
     }
 
     void draw() const {
@@ -80,9 +80,11 @@ public:
         }
     }
 
-    // TODO: false if player far enough
     bool playerCanCollide(const glm::vec2 &pos) const {
-        return true;
+        glm::vec2 rel = glm::abs(pos - m_chunkOffset);
+        if (std::max(rel.x, rel.y) <= 1.5f * defines::world::chunkSize)
+            return true;
+        return false;
     }
 
     void addThisToCollision(Collision &coll, const glm::vec2 &pos, float radius) const {
@@ -103,7 +105,7 @@ protected:
 
     const UniformManager &m_uniman;
     const MeshManager &m_meshman;
-    glm::vec2 m_chunkPos;
+    glm::vec2 m_chunkPos, m_chunkOffset;
     glm::mat4 m_chunkTranslateMat;
     std::array<MeshManager::Mesh, (s_wallCount + 1)> m_meshes;
     /*
@@ -133,7 +135,7 @@ protected:
         if (m_walls[3]) m_meshes[4] = MeshManager::Mesh::ChunkWallZNeg;
     }
 
-    void m_genHitboxes(const glm::vec2 &offset) {
+    void m_genHitboxes() {
         _M_SHREKROOMS_DEFINE_WORLD_DATA_CONSTEXPR();
 
         // x+
@@ -158,8 +160,8 @@ protected:
         };
 
         for (Hitbox &hb : m_hitboxes) {
-            hb.posMin += offset;
-            hb.posMax += offset;
+            hb.posMin += m_chunkOffset;
+            hb.posMax += m_chunkOffset;
         }
     }
 
