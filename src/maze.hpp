@@ -88,21 +88,23 @@ public:
         m_generateMainPath();
         m_addBridges(size, bridgePercent);
 #if (_MAZE_DESMOS_OUTPUT == 1)
+        std::ofstream file("maze.txt");
         for (int x = 0; x < size; x++) {
             for (int y = 0; y < size; y++) {
                 glm::ivec2 pos { x, y };
                 MazeNode node = m_nodes[pos];
-                std::cout << '(' << pos.x << ',' << pos.y << ')';
+                file << '(' << pos.x << ',' << pos.y << ')';
                 for (Direction d : allDirections) {
                     if ((node.walls & d) == Direction::Null) {
                         auto nxPos = pos + getDirectionVector(d);
                         glm::vec2 hpos = (static_cast<glm::vec2>(nxPos) + static_cast<glm::vec2>(pos)) * 0.5f;
-                        std::cout << ",(" << hpos.x << ',' << hpos.y << "),(" << nxPos.x << ',' << nxPos.y << "),(" << pos.x << ',' << pos.y << "),(" << hpos.x << ',' << hpos.y << ')';
+                        file << ",(" << hpos.x << ',' << hpos.y << "),(" << nxPos.x << ',' << nxPos.y << "),(" << pos.x << ',' << pos.y << "),(" << hpos.x << ',' << hpos.y << ')';
                     }
                 }
-                std::cout << '\n';
+                file << '\n';
             }
         }
+        file.close();
 #endif
     };
 
