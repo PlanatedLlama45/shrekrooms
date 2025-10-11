@@ -31,36 +31,9 @@ struct Geometry {
 };
 
 
-struct Texture {
-public:
-    Texture(const std::string &filename, bool interpolation = true); // Defined in gl_util.cpp
+using Texture = GLuint;
 
-    ~Texture() {
-        if (m_tex.use_count() == 1)
-            glDeleteTextures(1, m_tex.get());
-    }    
-
-    int getWidth() const {
-        return m_width;
-    }
-
-    int getHeight() const {
-        return m_height;
-    }
-
-    glm::ivec2 getSize() const {
-        return { m_width, m_height };
-    }
-
-    GLuint getId() const {
-        return *m_tex;
-    }
-
-protected:
-    std::shared_ptr<GLuint> m_tex;
-    int m_width, m_height;
-
-};
+Texture loadTexture(const std::string &filename, bool interpolation = true); // Defined in gl_util.cpp
 
 
 } // namespace shrekrooms::gl

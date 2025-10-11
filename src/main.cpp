@@ -9,17 +9,18 @@ int main(int argc, const char **argv) {
 
     gl::GLContext glc { 640*2, 480*2, "Shrekrooms", false, GLFW_KEY_ESCAPE };
     UniformManager uniman = glc.getUniformManager();
+    TextureManager texman { uniman };
 
     gl::Color bgcol { 0.2f, 0.2f, 0.2f };
-    // gl::Color bgcol { 0.3f, 0.65f, 0.85f };
     glc.setBackgroundColor(bgcol);
 
-    gl::Texture floorTex { "../img/floor.jpg" };
-    gl::Texture wallTex { "../img/wall.jpg" };
-    Player player { glc, { 0.0f, 0.0f, 0.0f }, 0.0f };
+
     maze::Maze maze { defines::world::chunksCountWidth, defines::world::bridgePercentage };
-    MeshManager meshman { uniman, floorTex, wallTex };
+    MeshManager meshman { uniman, texman };
     World world { glc, meshman, maze };
+
+    Player player { glc, { 0.0f, 0.0f, 0.0f }, 0.0f };
+    // Shrek shrek { glc, maze, shrekTex };
 
     glc.enableShader();
     uniman.setColor({ 1.0f, 0.0f, 1.0f });
@@ -35,16 +36,16 @@ int main(int argc, const char **argv) {
         glfwPollEvents();
 
         player.update(world, deltaTime);
-        shrek.update(world, player, deltaTime);
+        // shrek.update(world, player, deltaTime);
 
-        if (shrek.isCollidingPlayer(player))
-            break;
+        // if (shrek.isCollidingPlayer(player))
+        //     break;
 
         glc.enableShader();
         glc.clearBackground();
 
         world.draw();
-        shrek.draw(player);
+        // shrek.draw(player);
 
         glc.drawBuffer();
         deltaTime = glfwGetTime() - currentTime;

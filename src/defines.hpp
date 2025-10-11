@@ -57,5 +57,21 @@ namespace controls {
 } // namespace shrekrooms::defines::controls
 
 
+namespace shrek {
+
+    constexpr float width       = 3.0f;
+    constexpr float height      = 4.0f;
+    constexpr float radius      = 1.5f;
+
+    constexpr float walkSpeed   = 7.0f;
+
+    constexpr float baseMoveTime = 6.0f;
+    constexpr float moveTimeAmp  = 1.5f;
+    constexpr float baseWaitTime = 1.0f;
+    constexpr float waitTimeAmp  = 0.5f;
+
+} // namespace shrekrooms::defines::shrek
+
+
 
 }; // namespace shrekrooms::defines

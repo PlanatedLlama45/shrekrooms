@@ -31,8 +31,8 @@ public:
     }
 
     // Uniforms
-    void setTexture(const gl::Texture &tex) const {
-        glBindTexture(GL_TEXTURE_2D, tex.getId());
+    void useTexture(gl::Texture tex) const {
+        glBindTexture(GL_TEXTURE_2D, tex);
     }
 
     void setTranslateMatrix(const glm::mat4 &translateMat) const {
@@ -60,8 +60,9 @@ public:
     }
 
 protected:
+    static constexpr size_t s_uniformCount = 6;
+    std::array<GLuint, s_uniformCount> m_uniforms;
     GLuint m_shader;
-    std::array<GLuint, 6> m_uniforms;
 
     static constexpr size_t s_uniformToId(Uniform uniform) {
         return static_cast<size_t>(uniform) - 1;
@@ -70,6 +71,44 @@ protected:
     GLuint m_getUniformLocation(const std::string &name) const {
         return glGetUniformLocation(m_shader, name.c_str());
     }
+};
+
+
+class TextureManager {
+public:
+    enum class TextureID {
+        Null = 0,
+
+        Floor,
+        Wall,
+        Shrek
+    };
+
+    TextureManager(const UniformManager &uniman) :
+            m_uniman(uniman), m_textures() {
+        m_textures[s_textureToId(TextureID::Floor)] = gl::loadTexture("../img/floor.jpg");
+        m_textures[s_textureToId(TextureID::Wall)] = gl::loadTexture("../img/wall.jpg");
+        m_textures[s_textureToId(TextureID::Shrek)] = gl::loadTexture("../img/shrek.jpg");
+    }
+
+    ~TextureManager() {
+        glDeleteTextures(s_texCount, m_textures.data());
+    }
+
+    gl::Texture getTexture(TextureID texture) const {
+        return m_textures[s_textureToId(texture)];
+    }
+
+protected:
+    static constexpr size_t s_texCount = 3;
+    const UniformManager &m_uniman;
+    std::array<gl::Texture, s_texCount> m_textures;
+
+    static constexpr size_t s_textureToId(TextureID texture) {
+        return static_cast<size_t>(texture) - 1;
+    }
+
+
 };
 
 
@@ -95,10 +134,8 @@ public:
         ChunkWallZNeg,
     };
 
-    MeshManager(const UniformManager &uniman, const gl::Texture &floorTex, const gl::Texture &wallTex) :
-            m_uniman(uniman), m_textures() {
-        m_textures = { floorTex, wallTex, wallTex, wallTex, wallTex };
-
+    MeshManager(const UniformManager &uniman, const TextureManager &texman) :
+            m_uniman(uniman), m_texman(texman) {
         m_genChunkFloor();
         m_genChunkWallXPos();
         m_genChunkWallXNeg();
@@ -112,18 +149,18 @@ public:
 
         const size_t meshId = s_meshToId(mesh);
 
-        const gl::Geometry &geo = m_geometries[meshId];
-        const gl::Texture &tex = m_textures[meshId]->get();
+        m_uniman.useTexture(m_textures[meshId]);
 
-        m_uniman.setTexture(tex);
+        const gl::Geometry &geo = m_geometries[meshId];
         glBindVertexArray(geo.vao);
         glDrawArrays(GL_TRIANGLES, 0, geo.vertCount);
     }
 
 protected:
     static constexpr size_t s_meshCount = 5;
+    const TextureManager &m_texman;
     std::array<gl::Geometry, s_meshCount> m_geometries;
-    std::array<std::optional<std::reference_wrapper<const gl::Texture>>, s_meshCount> m_textures;
+    std::array<gl::Texture, s_meshCount> m_textures;
 
     static constexpr size_t s_meshToId(Mesh mesh) {
         return static_cast<size_t>(mesh) - 1;
@@ -151,7 +188,10 @@ protected:
     void m_genChunkFloor() {
         _M_SHREKROOMS_DEFINE_WORLD_DATA_CONSTEXPR();
 
-        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkFloor)];
+        const size_t meshId = s_meshToId(Mesh::ChunkFloor);
+
+        m_textures[meshId] = m_texman.getTexture(TextureManager::TextureID::Floor);
+        gl::Geometry &geometry = m_geometries[meshId];
 
         std::vector<float> verts {
             // floor
@@ -177,7 +217,10 @@ protected:
     void m_genChunkWallXPos() {
         _M_SHREKROOMS_DEFINE_WORLD_DATA_CONSTEXPR();
 
-        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallXPos)];
+        const size_t meshId = s_meshToId(Mesh::ChunkWallXPos);
+
+        m_textures[meshId] = m_texman.getTexture(TextureManager::TextureID::Wall);
+        gl::Geometry &geometry = m_geometries[meshId];
 
         std::vector<float> verts {
             // main
@@ -210,7 +253,10 @@ protected:
     void m_genChunkWallXNeg() {
         _M_SHREKROOMS_DEFINE_WORLD_DATA_CONSTEXPR();
 
-        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallXNeg)];
+        const size_t meshId = s_meshToId(Mesh::ChunkWallXNeg);
+
+        m_textures[meshId] = m_texman.getTexture(TextureManager::TextureID::Wall);
+        gl::Geometry &geometry = m_geometries[meshId];
 
         std::vector<float> verts {
             // main
@@ -243,7 +289,10 @@ protected:
     void m_genChunkWallZPos() {
         _M_SHREKROOMS_DEFINE_WORLD_DATA_CONSTEXPR();
 
-        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallZPos)];
+        const size_t meshId = s_meshToId(Mesh::ChunkWallZPos);
+
+        m_textures[meshId] = m_texman.getTexture(TextureManager::TextureID::Wall);
+        gl::Geometry &geometry = m_geometries[meshId];
 
         std::vector<float> verts {
             // main
@@ -276,7 +325,10 @@ protected:
     void m_genChunkWallZneg() {
         _M_SHREKROOMS_DEFINE_WORLD_DATA_CONSTEXPR();
 
-        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallZNeg)];
+        const size_t meshId = s_meshToId(Mesh::ChunkWallZNeg);
+
+        m_textures[meshId] = m_texman.getTexture(TextureManager::TextureID::Wall);
+        gl::Geometry &geometry = m_geometries[meshId];
 
         std::vector<float> verts {
             // main

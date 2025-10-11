@@ -42,7 +42,7 @@ public:
     void render(const std::string &text, const glm::vec2 &pos, float charSize, const gl::Color &color = { 0.0f, 0.0f, 0.0f }, bool center = true) const {
 
         m_uniman.beginTextRender();
-        m_uniman.setTexture(m_bitmap);
+        m_uniman.useTexture(m_bitmap);
         m_uniman.setColor(color);
 
         std::string line;
