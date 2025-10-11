@@ -5,7 +5,7 @@
 #pragma once
 
 #include "imports.hpp"
-#include "gl.hpp"
+#include "glc.hpp"
 
 namespace shrekrooms::gl {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "imports.hpp"
+#include "defines.hpp"
 
 
 namespace shrekrooms::shaders {
@@ -33,8 +33,8 @@ inline GLuint makeShaderModule(const std::string &filename, GLuint moduleType) {
 }
 
 inline GLuint makeShaderProgram() {
-    GLuint vertexModule = makeShaderModule("../shaders/vertex.glsl", GL_VERTEX_SHADER);
-    GLuint fragmentModule = makeShaderModule("../shaders/fragment.glsl", GL_FRAGMENT_SHADER);
+    GLuint vertexModule = makeShaderModule(defines::shader::vertex, GL_VERTEX_SHADER);
+    GLuint fragmentModule = makeShaderModule(defines::shader::fragment, GL_FRAGMENT_SHADER);
 
     GLuint shader = glCreateProgram();
 

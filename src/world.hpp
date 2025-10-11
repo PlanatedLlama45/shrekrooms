@@ -1,7 +1,8 @@
 #pragma once
 
-#include "imports.hpp"
-#include "gl.hpp"
+#include "defines.hpp"
+#include "glc.hpp"
+#include "managers.hpp"
 #include "maze.hpp"
 
 
@@ -56,266 +57,18 @@ struct Hitbox {
 };
 
 
-namespace world_data {
-    constexpr float chunkSize = 5.0f;
-    constexpr float chunkHeight = 5.0f;
-    constexpr float wallThicknessHalf = 0.5f;
-    constexpr int chunkFloorTiles = 2;
-    constexpr int chunkWallTiles = 1;
-
-    constexpr int chunksCountWidth = 10;
-    constexpr float bridgePercentage = 0.2f;
-};
-
-
-#define _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR()                                           \
-    constexpr float pmax = 0.5f * world_data::chunkSize;                                            \
-    constexpr float ymax = 0.5f * world_data::chunkHeight;                                          \
-    constexpr float wmax = pmax - world_data::wallThicknessHalf;                                    \
-    constexpr float gmax = pmax + world_data::wallThicknessHalf - 2.0f*gl::epsilon;                 \
-    constexpr float tfmax = world_data::chunkFloorTiles;                                            \
-    constexpr float twmax = world_data::chunkWallTiles;                                             \
-    constexpr float tgmax = twmax * (2.0f * world_data::wallThicknessHalf / world_data::chunkSize);
-
-
-class MeshManager {
-public:
-    enum class Mesh {
-        Null = 0,
-
-        ChunkFloor,
-        ChunkWallXPos,
-        ChunkWallXNeg,
-        ChunkWallZPos,
-        ChunkWallZNeg,
-    };
-
-    MeshManager(const gl::UniformManager &uniman, const gl::Texture &floorTex, const gl::Texture &wallTex) :
-            m_uniman(uniman), m_textures() {
-        m_textures = { floorTex, wallTex, wallTex, wallTex, wallTex };
-
-        m_genChunkFloor();
-        m_genChunkWallXPos();
-        m_genChunkWallXNeg();
-        m_genChunkWallZPos();
-        m_genChunkWallZneg();
-    }
-
-    void renderMesh(Mesh mesh) const {
-        if (mesh == Mesh::Null)
-            return;
-
-        const size_t meshId = s_meshToId(mesh);
-
-        const gl::Geometry &geo = m_geometries[meshId];
-        const gl::Texture &tex = m_textures[meshId]->get();
-
-        m_uniman.setTexture(tex);
-        glBindVertexArray(geo.vao);
-        glDrawArrays(GL_TRIANGLES, 0, geo.vertCount);
-    }
-
-protected:
-    static constexpr size_t s_meshCount = 5;
-    std::array<gl::Geometry, s_meshCount> m_geometries;
-    std::array<std::optional<std::reference_wrapper<const gl::Texture>>, s_meshCount> m_textures;
-
-    static constexpr size_t s_meshToId(Mesh mesh) {
-        return static_cast<size_t>(mesh) - 1;
-    }
-
-    const gl::UniformManager &m_uniman;
-
-    void m_bindGeometry(gl::Geometry &geometry, const std::vector<float> &verts) {
-        static constexpr size_t stride = 5;
-
-        glGenVertexArrays(1, &geometry.vao);
-        glBindVertexArray(geometry.vao);
-        glGenBuffers(1, &geometry.vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo);
-        glBufferData(GL_ARRAY_BUFFER, verts.size()*sizeof(GLfloat), verts.data(), GL_STATIC_DRAW);
-        /* Position */
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)0);
-        glEnableVertexAttribArray(0);
-        /* Texture coordinates */
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
-        glEnableVertexAttribArray(1);
-        geometry.vertCount = verts.size() / stride;
-    }
-
-    void m_genChunkFloor() {
-        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
-
-        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkFloor)];
-
-        std::vector<float> verts {
-            // floor
-             pmax, -ymax,  pmax,  tfmax, 0.0f,
-             pmax, -ymax, -pmax,  tfmax, tfmax,
-            -pmax, -ymax,  pmax,  0.0f,  0.0f,
-            -pmax, -ymax,  pmax,  0.0f,  0.0f,
-             pmax, -ymax, -pmax,  tfmax, tfmax,
-            -pmax, -ymax, -pmax,  0.0f,  tfmax,
-
-            // ceiling
-             pmax,  ymax, -pmax,  tfmax, tfmax,
-             pmax,  ymax,  pmax,  tfmax, 0.0f,
-            -pmax,  ymax,  pmax,  0.0f,  0.0f,
-             pmax,  ymax, -pmax,  tfmax, tfmax,
-            -pmax,  ymax,  pmax,  0.0f,  0.0f,
-            -pmax,  ymax, -pmax,  0.0f,  tfmax,
-        };
-
-        m_bindGeometry(geometry, verts);
-    }
-
-    void m_genChunkWallXPos() {
-        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
-
-        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallXPos)];
-
-        std::vector<float> verts {
-            // main
-             wmax, -ymax, -gmax,    0.0f,  twmax,
-             wmax, -ymax,  gmax,    twmax, twmax,
-             wmax,  ymax,  gmax,    twmax, 0.0f,
-             wmax, -ymax, -gmax,    0.0f,  twmax,
-             wmax,  ymax,  gmax,    twmax, 0.0f,
-             wmax,  ymax, -gmax,    0.0f,  0.0f,
-
-            // sides
-             pmax, -ymax, -gmax,    0.0f,  twmax,
-             wmax, -ymax, -gmax,    tgmax, twmax,
-             wmax,  ymax, -gmax,    tgmax, 0.0f,
-             pmax, -ymax, -gmax,    0.0f,  twmax,
-             wmax,  ymax, -gmax,    tgmax, 0.0f,
-             pmax,  ymax, -gmax,    0.0f,  0.0f,
-
-             wmax, -ymax,  gmax,    0.0f,  twmax,
-             pmax, -ymax,  gmax,    tgmax, twmax,
-             pmax,  ymax,  gmax,    tgmax, 0.0f,
-             wmax, -ymax,  gmax,    0.0f,  twmax,
-             pmax,  ymax,  gmax,    tgmax, 0.0f,
-             wmax,  ymax,  gmax,    0.0f,  0.0f,
-        };
-
-        m_bindGeometry(geometry, verts);
-    }
-
-    void m_genChunkWallXNeg() {
-        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
-
-        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallXNeg)];
-
-        std::vector<float> verts {
-            // main
-            -wmax, -ymax,  gmax,    0.0f,  twmax,
-            -wmax, -ymax, -gmax,    twmax, twmax,
-            -wmax,  ymax, -gmax,    twmax, 0.0f,
-            -wmax, -ymax,  gmax,    0.0f,  twmax,
-            -wmax,  ymax, -gmax,    twmax, 0.0f,
-            -wmax,  ymax,  gmax,    0.0f,  0.0f,
-
-            // sides
-            -wmax, -ymax, -gmax,    0.0f,  twmax,
-            -pmax, -ymax, -gmax,    tgmax, twmax,
-            -pmax,  ymax, -gmax,    tgmax, 0.0f,
-            -wmax, -ymax, -gmax,    0.0f,  twmax,
-            -pmax,  ymax, -gmax,    tgmax, 0.0f,
-            -wmax,  ymax, -gmax,    0.0f,  0.0f,
-
-            -pmax, -ymax,  gmax,    0.0f,  twmax,
-            -wmax, -ymax,  gmax,    tgmax, twmax,
-            -wmax,  ymax,  gmax,    tgmax, 0.0f,
-            -pmax, -ymax,  gmax,    0.0f,  twmax,
-            -wmax,  ymax,  gmax,    tgmax, 0.0f,
-            -pmax,  ymax,  gmax,    0.0f,  0.0f,
-        };
-
-        m_bindGeometry(geometry, verts);
-    }
-
-    void m_genChunkWallZPos() {
-        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
-
-        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallZPos)];
-
-        std::vector<float> verts {
-            // main
-             gmax, -ymax,  wmax,    0.0f,  twmax,
-            -gmax, -ymax,  wmax,    twmax, twmax,
-            -gmax,  ymax,  wmax,    twmax, 0.0f,
-             gmax, -ymax,  wmax,    0.0f,  twmax,
-            -gmax,  ymax,  wmax,    twmax, 0.0f,
-             gmax,  ymax,  wmax,    0.0f,  0.0f,
-
-            // sides
-            -gmax, -ymax,  pmax,    0.0f,  twmax,
-            -gmax, -ymax,  gmax,    tgmax, twmax,
-            -gmax,  ymax,  gmax,    tgmax, 0.0f,
-            -gmax, -ymax,  pmax,    0.0f,  twmax,
-            -gmax,  ymax,  gmax,    tgmax, 0.0f,
-            -gmax,  ymax,  pmax,    0.0f,  0.0f,
-
-             gmax, -ymax,  gmax,    0.0f,  twmax,
-             gmax, -ymax,  pmax,    tgmax, twmax,
-             gmax,  ymax,  pmax,    tgmax, 0.0f,
-             gmax, -ymax,  gmax,    0.0f,  twmax,
-             gmax,  ymax,  pmax,    tgmax, 0.0f,
-             gmax,  ymax,  gmax,    0.0f,  0.0f,
-        };
-
-        m_bindGeometry(geometry, verts);
-    }
-
-    void m_genChunkWallZneg() {
-        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
-
-        gl::Geometry &geometry = m_geometries[s_meshToId(Mesh::ChunkWallZNeg)];
-
-        std::vector<float> verts {
-            // main
-            -gmax, -ymax, -wmax,    0.0f,  twmax,
-             gmax, -ymax, -wmax,    twmax, twmax,
-             gmax,  ymax, -wmax,    twmax, 0.0f,
-            -gmax, -ymax, -wmax,    0.0f,  twmax,
-             gmax,  ymax, -wmax,    twmax, 0.0f,
-            -gmax,  ymax, -wmax,    0.0f,  0.0f,
-
-            // sides
-             gmax, -ymax, -pmax,    0.0f,  twmax,
-             gmax, -ymax, -gmax,    tgmax, twmax,
-             gmax,  ymax, -gmax,    tgmax, 0.0f,
-             gmax, -ymax, -pmax,    0.0f,  twmax,
-             gmax,  ymax, -gmax,    tgmax, 0.0f,
-             gmax,  ymax, -pmax,    0.0f,  0.0f,
-
-            -gmax, -ymax, -gmax,    0.0f,  twmax,
-            -gmax, -ymax, -pmax,    tgmax, twmax,
-            -gmax,  ymax, -pmax,    tgmax, 0.0f,
-            -gmax, -ymax, -gmax,    0.0f,  twmax,
-            -gmax,  ymax, -pmax,    tgmax, 0.0f,
-            -gmax,  ymax, -gmax,    0.0f,  0.0f,
-        };
-
-        m_bindGeometry(geometry, verts);
-    }
-
-};
-
-
 class Chunk {
 public:
-    Chunk(const gl::UniformManager &uniman, const MeshManager &meshman, const glm::vec2 &chunkPos, const maze::MazeNode &node) :
+    Chunk(const UniformManager &uniman, const MeshManager &meshman, const glm::vec2 &chunkPos, const maze::MazeNode &node) :
             m_uniman(uniman), m_meshman(meshman), m_chunkPos(chunkPos), m_meshes(), m_walls() {
         m_setWalls(node);
         m_addMeshes();
 
-        glm::vec2 offset = m_chunkPos * world_data::chunkSize;
+        glm::vec2 offset = m_chunkPos * defines::world::chunkSize;
         if (static_cast<int>(m_chunkPos.x + m_chunkPos.y) % 2 == 0)
-            offset += glm::vec2 { gl::epsilon, gl::epsilon };
+            offset += glm::vec2 { defines::epsilon, defines::epsilon };
 
-        m_chunkTranslateMat = glm::translate(gl::mat4identity, { offset.x, 0.0f, offset.y });
+        m_chunkTranslateMat = glm::translate(defines::mat4identity, { offset.x, 0.0f, offset.y });
 
         m_genHitboxes(offset);
     }
@@ -348,7 +101,7 @@ public:
 protected:
     static constexpr size_t s_wallCount = 4;
 
-    const gl::UniformManager &m_uniman;
+    const UniformManager &m_uniman;
     const MeshManager &m_meshman;
     glm::vec2 m_chunkPos;
     glm::mat4 m_chunkTranslateMat;
@@ -381,7 +134,7 @@ protected:
     }
 
     void m_genHitboxes(const glm::vec2 &offset) {
-        _M_SHREKROOMS_WORLD_DEFINE_WORLD_DATA_CONSTEXPR();
+        _M_SHREKROOMS_DEFINE_WORLD_DATA_CONSTEXPR();
 
         // x+
         m_hitboxes[0] = Hitbox {
@@ -417,9 +170,9 @@ class World {
 public:
     World(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze) :
             m_glc(glc), m_uniman(glc.getUniformManager()), m_meshman(meshman), m_maze(maze) {
-        m_chunks.reserve(world_data::chunksCountWidth*world_data::chunksCountWidth);
-        for (int x = 0; x < world_data::chunksCountWidth; x++) {
-            for (int y = 0; y < world_data::chunksCountWidth; y++) {
+        m_chunks.reserve(defines::world::chunksCountWidth*defines::world::chunksCountWidth);
+        for (int x = 0; x < defines::world::chunksCountWidth; x++) {
+            for (int y = 0; y < defines::world::chunksCountWidth; y++) {
                 m_chunks.emplace_back(m_uniman, meshman, glm::vec2 { static_cast<float>(x), static_cast<float>(y) }, m_maze.getNode({ x, y }));
             }
         }
@@ -444,7 +197,7 @@ public:
 
 protected:
     const gl::GLContext &m_glc;
-    const gl::UniformManager &m_uniman;
+    const UniformManager &m_uniman;
     const MeshManager &m_meshman;
     const maze::Maze &m_maze;
     std::vector<Chunk> m_chunks;

@@ -1,4 +1,4 @@
-#include "gl.hpp"
+#include "glc.hpp"
 #include "player.hpp"
 #include "world.hpp"
 
@@ -8,7 +8,7 @@ int main(int argc, const char **argv) {
     srand(time(NULL));
 
     gl::GLContext glc { 640*2, 480*2, "Shrekrooms", false, GLFW_KEY_ESCAPE };
-    gl::UniformManager uniman = glc.getUniformManager();
+    UniformManager uniman = glc.getUniformManager();
 
     gl::Color bgcol { 0.2f, 0.2f, 0.2f };
     // gl::Color bgcol { 0.3f, 0.65f, 0.85f };
@@ -17,7 +17,7 @@ int main(int argc, const char **argv) {
     gl::Texture floorTex { "../img/floor.jpg" };
     gl::Texture wallTex { "../img/wall.jpg" };
     Player player { glc, { 0.0f, 0.0f, 0.0f }, 0.0f };
-    maze::Maze maze { world_data::chunksCountWidth, world_data::bridgePercentage };
+    maze::Maze maze { defines::world::chunksCountWidth, defines::world::bridgePercentage };
     MeshManager meshman { uniman, floorTex, wallTex };
     World world { glc, meshman, maze };
 

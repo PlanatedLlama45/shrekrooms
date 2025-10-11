@@ -31,9 +31,6 @@
 #include <optional>
 
 
-#define _MAZE_DESMOS_OUTPUT 0
-
-
 namespace shrekrooms {
 
 
