@@ -74,7 +74,7 @@ public:
 
     void draw() const;
     
-    Collision getPlayerCollision(const glm::vec2 &pos, float radius) const;
+    Collision getCollision(const glm::vec2 &pos, float radius) const;
 
 protected:
     const gl::GLContext &m_glc;

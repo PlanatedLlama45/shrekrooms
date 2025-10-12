@@ -45,7 +45,7 @@ void Player::update(const World &world, float dt) {
         m_pos += defines::player::walkSpeed * dPos * dt;
     }
 
-    Collision coll = world.getPlayerCollision({ m_pos.x, m_pos.z }, defines::player::radius);
+    Collision coll = world.getCollision({ m_pos.x, m_pos.z }, defines::player::radius);
     if (coll.isColliding)
         m_pos += glm::vec3 { coll.cancelVector.x, 0.0f, coll.cancelVector.y };
 

@@ -53,6 +53,7 @@ GLContext::GLContext(int width, int height, const char *title, bool windowResize
     glm::mat4 projMat = glm::perspective(defines::deg2rad*90.0f, m_window.getAspectRatio(), 0.1f, 15.0f);
     m_uniman->setProjectionMatrix(projMat);
     m_uniman->setTranslateMatrix(defines::mat4identity);
+    m_uniman->setRotateMatrix(defines::mat4identity);
 }
 
 GLContext::~GLContext() {

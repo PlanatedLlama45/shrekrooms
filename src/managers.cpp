@@ -10,6 +10,7 @@ using namespace shrekrooms;
 UniformManager::UniformManager(GLuint shader) :
         m_shader(shader) {
     m_uniforms[s_uniformToId(Uniform::Translate)]  = m_getUniformLocation("u_translate");
+    m_uniforms[s_uniformToId(Uniform::Rotate)]     = m_getUniformLocation("u_rotate");
     m_uniforms[s_uniformToId(Uniform::View)]       = m_getUniformLocation("u_view");
     m_uniforms[s_uniformToId(Uniform::Projection)] = m_getUniformLocation("u_projection");
     m_uniforms[s_uniformToId(Uniform::Color)]      = m_getUniformLocation("u_color");
@@ -24,6 +25,10 @@ void UniformManager::useTexture(gl::Texture tex) const {
 
 void UniformManager::setTranslateMatrix(const glm::mat4 &translateMat) const {
     glUniformMatrix4fv(m_uniforms[s_uniformToId(Uniform::Translate)], 1, GL_FALSE, glm::value_ptr(translateMat));
+}
+
+void UniformManager::setRotateMatrix(const glm::mat4 &rotateMat) const {
+    glUniformMatrix4fv(m_uniforms[s_uniformToId(Uniform::Rotate)], 1, GL_FALSE, glm::value_ptr(rotateMat));
 }
 
 void UniformManager::UniformManager::setViewMatrix(const glm::mat4 &viewMat) const {
@@ -127,13 +132,13 @@ void MeshManager::m_bindGeometry(gl::Geometry &geometry, const std::vector<float
 }
 
 #define _M_SHREKROOMS_DEFINE_WORLD_DATA_CONSTEXPR()                                                 \
-    constexpr float pmax = 0.5f * defines::world::chunkSize;                                        \
-    constexpr float ymax = 0.5f * defines::world::chunkHeight;                                      \
-    constexpr float wmax = pmax - defines::world::wallThicknessHalf;                                \
-    constexpr float gmax = pmax + defines::world::wallThicknessHalf - 2.0f*defines::epsilon;        \
-    constexpr float tfmax = defines::world::chunkFloorTiles;                                        \
-    constexpr float twmax = defines::world::chunkWallTiles;                                         \
-    constexpr float tgmax = twmax * (2.0f * defines::world::wallThicknessHalf / defines::world::chunkSize);
+    const float pmax = 0.5f * defines::world::chunkSize;                                            \
+    const float ymax = 0.5f * defines::world::chunkHeight;                                          \
+    const float wmax = pmax - defines::world::wallThicknessHalf;                                    \
+    const float gmax = pmax + defines::world::wallThicknessHalf - 2.0f*defines::epsilon;            \
+    const float tfmax = defines::world::chunkFloorTiles;                                            \
+    const float twmax = defines::world::chunkWallTiles;                                             \
+    const float tgmax = twmax * (2.0f * defines::world::wallThicknessHalf / defines::world::chunkSize);
 
 void MeshManager::m_genChunkFloor() {
     _M_SHREKROOMS_DEFINE_WORLD_DATA_CONSTEXPR();

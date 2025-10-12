@@ -113,9 +113,9 @@ void Chunk::m_addMeshes() {
 }
 
 void Chunk::m_genHitboxes() {
-    constexpr float pmax = 0.5f * defines::world::chunkSize;
-    constexpr float wmax = pmax - defines::world::wallThicknessHalf;
-    constexpr float gmax = pmax + defines::world::wallThicknessHalf - 2.0f*defines::epsilon;
+    const float pmax = 0.5f * defines::world::chunkSize;
+    const float wmax = pmax - defines::world::wallThicknessHalf;
+    const float gmax = pmax + defines::world::wallThicknessHalf - 2.0f*defines::epsilon;
 
     // x+
     m_hitboxes[0] = Hitbox {
@@ -166,7 +166,7 @@ void World::draw() const {
         ch.draw();
 }
 
-Collision World::getPlayerCollision(const glm::vec2 &pos, float radius) const {
+Collision World::getCollision(const glm::vec2 &pos, float radius) const {
     Collision res { };
     for (const Chunk &ch : m_chunks) {
         if (ch.playerCanCollide(pos))

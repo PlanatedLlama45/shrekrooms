@@ -13,6 +13,7 @@ public:
         Null = 0,
 
         Translate,
+        Rotate,
         View,
         Projection,
         Color,
@@ -25,6 +26,7 @@ public:
     // Uniforms
     void useTexture(gl::Texture tex) const;
     void setTranslateMatrix(const glm::mat4 &translateMat) const;
+    void setRotateMatrix(const glm::mat4 &rotateMat) const;
     void setViewMatrix(const glm::mat4 &viewMat) const;
     void setProjectionMatrix(const glm::mat4 &projectionMat) const;
     void setColor(const gl::Color &color) const;
