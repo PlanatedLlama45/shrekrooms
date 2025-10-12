@@ -136,7 +136,9 @@ protected:
     }
 
     void m_genHitboxes() {
-        _M_SHREKROOMS_DEFINE_WORLD_DATA_CONSTEXPR();
+        constexpr float pmax = 0.5f * defines::world::chunkSize;
+        constexpr float wmax = pmax - defines::world::wallThicknessHalf;
+        constexpr float gmax = pmax + defines::world::wallThicknessHalf - 2.0f*defines::epsilon;
 
         // x+
         m_hitboxes[0] = Hitbox {

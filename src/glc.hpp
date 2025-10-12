@@ -26,7 +26,6 @@ public:
 
 
     GLContext(int width, int height, const char *title, bool windowResizeable = false, int exitKey = GLFW_KEY_UNKNOWN);
-
     ~GLContext();
 
     // Getters/setters
