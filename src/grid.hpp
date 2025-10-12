@@ -6,7 +6,7 @@
 namespace shrekrooms {
 
 
-template <class T>
+template <typename T>
 class Grid {
 public:
     struct Iterator {

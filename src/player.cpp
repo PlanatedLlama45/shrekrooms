@@ -1,0 +1,57 @@
+#include "player.hpp"
+
+using namespace shrekrooms;
+
+
+Player::Player(const gl::GLContext &glc, const glm::vec3 &pos, float cameraRot) : 
+    m_glc(glc), m_uniman(glc.getUniformManager()), m_pos(pos), m_cameraRot(cameraRot) { }
+
+const glm::vec3 &Player::getPos() const {
+    return m_pos;
+}
+
+float Player::getCameraRot() const {
+    return m_cameraRot;
+}
+
+void Player::update(const World &world, float dt) {
+    if (!m_glc.isWindowFocused())
+        return;
+
+    glm::vec2 mousepos = m_glc.getCursorPos();
+    m_glc.setCursorPos({ 0.0f, 0.0f });
+
+    m_cameraRot += defines::player::mouseSensitivity * mousepos.x * dt;
+
+    glm::vec3 forw = {
+        glm::cos(m_cameraRot),
+        0.0f,
+        glm::sin(m_cameraRot)
+    };
+    glm::vec3 right = glm::normalize(glm::cross(forw, defines::globalUp));
+
+    glm::vec3 dPos = { 0.0f, 0.0f, 0.0f };
+    if (m_glc.isKeyPressed(defines::controls::keyForward))
+        dPos += forw;
+    if (m_glc.isKeyPressed(defines::controls::keyBackward))
+        dPos -= forw;
+    if (m_glc.isKeyPressed(defines::controls::keyLeft))
+        dPos -= right;
+    if (m_glc.isKeyPressed(defines::controls::keyRight))
+        dPos += right;
+
+    if (glm::length(dPos) > 0.1f) {
+        dPos = glm::normalize(dPos);
+        m_pos += defines::player::walkSpeed * dPos * dt;
+    }
+
+    Collision coll = world.getPlayerCollision({ m_pos.x, m_pos.z }, defines::player::radius);
+    if (coll.isColliding)
+        m_pos += glm::vec3 { coll.cancelVector.x, 0.0f, coll.cancelVector.y };
+
+    m_glc.enableShader();
+    glm::mat4 view = glm::lookAt(m_pos, m_pos + forw, defines::globalUp);
+    m_uniman.setViewMatrix(view);
+
+    m_uniman.setViewPos(m_pos);
+}
