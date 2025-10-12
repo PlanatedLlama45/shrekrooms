@@ -18,8 +18,8 @@ constexpr float epsilon = 1e-3f;
 
 namespace shader {
 
-    const std::string vertex = "../shaders/vertex.glsl";
-    const std::string fragment = "../shaders/fragment.glsl";
+    constexpr std::string_view vertex { "../shaders/vertex.glsl" };
+    constexpr std::string_view fragment { "../shaders/fragment.glsl" };
 
 }; // namespace shrekrooms::defines::shader
 

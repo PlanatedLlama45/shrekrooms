@@ -6,7 +6,7 @@
 namespace shrekrooms::shaders {
 
 
-inline GLuint makeShaderModule(const std::string &filename, GLuint moduleType) {
+inline GLuint makeShaderModule(const char *filename, GLuint moduleType) {
 	std::ifstream file(filename);
 
 	std::string line, shaderSrc;
@@ -33,8 +33,8 @@ inline GLuint makeShaderModule(const std::string &filename, GLuint moduleType) {
 }
 
 inline GLuint makeShaderProgram() {
-    GLuint vertexModule = makeShaderModule(defines::shader::vertex, GL_VERTEX_SHADER);
-    GLuint fragmentModule = makeShaderModule(defines::shader::fragment, GL_FRAGMENT_SHADER);
+    GLuint vertexModule = makeShaderModule(defines::shader::vertex.data(), GL_VERTEX_SHADER);
+    GLuint fragmentModule = makeShaderModule(defines::shader::fragment.data(), GL_FRAGMENT_SHADER);
 
     GLuint shader = glCreateProgram();
 
