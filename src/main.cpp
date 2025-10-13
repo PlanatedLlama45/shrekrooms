@@ -14,13 +14,12 @@ int main(int argc, const char **argv) {
     gl::Color bgcol { 0.2f, 0.2f, 0.2f };
     glc.setBackgroundColor(bgcol);
 
-
-    maze::Maze maze { defines::world::chunksCountWidth, defines::world::bridgePercentage };
+    maze::Maze maze { static_cast<size_t>(defines::world::chunksCountWidth), defines::world::bridgePercentage };
     MeshManager meshman { uniman, texman };
     World world { glc, meshman, maze };
 
     Player player { glc, { 0.0f, 0.0f, 0.0f }, 0.0f };
-    Shrek shrek { glc, texman, maze };
+    Shrek shrek { glc, meshman, maze, { 5.0f, 0.0f, 5.0f } };
 
     glc.enableShader();
     uniman.setColor({ 1.0f, 0.0f, 1.0f });
@@ -38,14 +37,14 @@ int main(int argc, const char **argv) {
         player.update(world, deltaTime);
         shrek.update(world, player, deltaTime);
 
-        if (shrek.isCollidingPlayer(player))
-            break;
+        // if (shrek.isCollidingPlayer(player))
+        //     break;
 
         glc.enableShader();
         glc.clearBackground();
 
-        world.draw();
         shrek.draw(player);
+        world.draw();
 
         glc.drawBuffer();
         deltaTime = glfwGetTime() - currentTime;

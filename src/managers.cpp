@@ -95,6 +95,7 @@ MeshManager::MeshManager(const UniformManager &uniman, const TextureManager &tex
     m_genChunkWallXNeg();
     m_genChunkWallZPos();
     m_genChunkWallZneg();
+    m_genShrek();
 }
 
 void MeshManager::renderMesh(Mesh mesh) const {
@@ -308,6 +309,28 @@ void MeshManager::m_genChunkWallZneg() {
         -gmax, -ymax, -gmax,    0.0f,  twmax,
         -gmax,  ymax, -pmax,    tgmax, 0.0f,
         -gmax,  ymax, -gmax,    0.0f,  0.0f,
+    };
+
+    m_bindGeometry(geometry, verts);
+}
+
+void shrekrooms::MeshManager::m_genShrek() {
+    const size_t meshId = s_meshToId(Mesh::Shrek);
+
+    m_textures[meshId] = m_texman.getTexture(TextureManager::TextureID::Shrek);
+    gl::Geometry &geometry = m_geometries[meshId];
+
+    const float smax = 0.5f * defines::shrek::width;
+    const float ymin = 0.5f * defines::world::chunkHeight;
+    const float ymax = -ymin + defines::shrek::height;
+
+    std::vector<float> verts = {
+        0.0f, -ymin, -smax,    0.0f, 1.0f,
+        0.0f, -ymin,  smax,    1.0f, 1.0f,
+        0.0f,  ymax,  smax,    1.0f, 0.0f,
+        0.0f, -ymin, -smax,    0.0f, 1.0f,
+        0.0f,  ymax,  smax,    1.0f, 0.0f,
+        0.0f,  ymax, -smax,    0.0f, 0.0f,
     };
 
     m_bindGeometry(geometry, verts);

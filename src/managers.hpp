@@ -80,6 +80,7 @@ public:
         ChunkWallXNeg,
         ChunkWallZPos,
         ChunkWallZNeg,
+        Shrek
     };
 
     MeshManager(const UniformManager &uniman, const TextureManager &texman);
@@ -87,7 +88,7 @@ public:
     void renderMesh(Mesh mesh) const;
 
 protected:
-    static constexpr size_t s_meshCount = 5;
+    static constexpr size_t s_meshCount = 6;
     const TextureManager &m_texman;
     const UniformManager &m_uniman;
     std::array<gl::Geometry, s_meshCount> m_geometries;
@@ -102,6 +103,7 @@ protected:
     void m_genChunkWallXNeg();
     void m_genChunkWallZPos();
     void m_genChunkWallZneg();
+    void m_genShrek();
 
 };
 

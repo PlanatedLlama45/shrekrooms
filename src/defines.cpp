@@ -36,4 +36,4 @@ const int shrekrooms::defines::controls::keyRight    = GLFW_KEY_D;
 const float shrekrooms::defines::shrek::width     = 3.0f;
 const float shrekrooms::defines::shrek::height    = 4.0f;
 const float shrekrooms::defines::shrek::radius    = 1.5f;
-const float shrekrooms::defines::shrek::walkSpeed = 7.0f;
+const float shrekrooms::defines::shrek::walkSpeed = 5.0f;
