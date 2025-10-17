@@ -26,13 +26,13 @@ namespace shader {
 
 namespace world {
 
-    extern const float chunkSize;
-    extern const float chunkHeight;
-    extern const float wallThicknessHalf;
-    extern const int chunkFloorTiles;
-    extern const int chunkWallTiles;
-    extern const int chunksCountWidth;
-    extern const float bridgePercentage;
+    extern const float  chunkSize;
+    extern const float  chunkHeight;
+    extern const float  wallThicknessHalf;
+    extern const int    chunkFloorTiles;
+    extern const int    chunkWallTiles;
+    extern const size_t chunksCountWidth;
+    extern const float  bridgePercentage;
 
 } // namespace shrekrooms::defines::world
 

@@ -41,9 +41,11 @@ public:
     };
 
 
-    Grid(size_t width, size_t height) :
+    Grid(size_t width, size_t height, T val = T()) :
             m_width(width), m_height(height), m_size(width * height) {
         m_data = new T[m_size];
+        for (size_t i = 0; i < m_size; i++)
+            m_data[i] = val;
     }
 
     ~Grid() {

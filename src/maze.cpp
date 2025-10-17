@@ -85,6 +85,11 @@ const MazeNode &Maze::getNode(const glm::ivec2 &pos) const {
     return m_nodes.at(pos);
 }
 
+bool Maze::canGoDir(const glm::ivec2 &pos, Direction dir) const {
+    const MazeNode &curNode = m_nodes.at(pos);
+    return ((curNode.walls & dir) == Direction::Null);
+}
+
 Direction Maze::m_getRngDirection(const glm::ivec2 &pos, bool nextShouldBeEmpty) {
     std::vector<Direction> res;
     res.reserve(4);

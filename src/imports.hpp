@@ -24,7 +24,7 @@
 
 #include <memory>
 #include <vector>
-// #include <algorithm>
+#include <algorithm>
 #include <array>
 // #include <map>
 #include <stack>
@@ -61,26 +61,6 @@ protected:
     std::string m_msg;
 
 };
-
-
-inline void initRandom() {
-    srand(time(NULL));
-}
-
-// Random int: [lo; hi]
-inline int getRandomInt(int lo, int hi) {
-    return lo + rand() % (hi - lo + 1);
-}
-
-// Random float [0; 1]
-inline float getRandomFloat() {
-    return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-}
-
-// Random float [lo; hi]
-inline float getRandomFloat(float lo, float hi) {
-    return lo + getRandomFloat() * (hi - lo);
-}
 
 
 } // namespace shrekrooms

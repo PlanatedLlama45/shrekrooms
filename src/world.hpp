@@ -9,6 +9,10 @@
 namespace shrekrooms {
 
 
+glm::ivec2 worldToChunkCoords(const glm::vec2 &pos);
+glm::ivec2 worldToChunkCoords(const glm::vec3 &pos);
+
+
 struct Collision {
     bool isColliding;
     glm::vec2 cancelVector;
@@ -50,6 +54,7 @@ protected:
     const UniformManager &m_uniman;
     const MeshManager &m_meshman;
     glm::vec2 m_chunkPos, m_chunkOffset;
+    glm::ivec2 m_chunkPosI;
     glm::mat4 m_chunkTranslateMat;
     std::array<MeshManager::Mesh, (s_wallCount + 1)> m_meshes;
     /*

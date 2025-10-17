@@ -13,13 +13,13 @@ const std::string_view shrekrooms::defines::shader::vertex   { "../shaders/verte
 const std::string_view shrekrooms::defines::shader::fragment { "../shaders/fragment.glsl" };
 
 // namespace shrekrooms::defines::world
-const float shrekrooms::defines::world::chunkSize         = 5.0f;
-const float shrekrooms::defines::world::chunkHeight       = 5.0f;
-const float shrekrooms::defines::world::wallThicknessHalf = 0.5f;
-const int   shrekrooms::defines::world::chunkFloorTiles   = 2;
-const int   shrekrooms::defines::world::chunkWallTiles    = 1;
-const int   shrekrooms::defines::world::chunksCountWidth  = 10;
-const float shrekrooms::defines::world::bridgePercentage  = 0.2f;
+const float  shrekrooms::defines::world::chunkSize         = 5.0f;
+const float  shrekrooms::defines::world::chunkHeight       = 5.0f;
+const float  shrekrooms::defines::world::wallThicknessHalf = 0.5f;
+const int    shrekrooms::defines::world::chunkFloorTiles   = 2;
+const int    shrekrooms::defines::world::chunkWallTiles    = 1;
+const size_t shrekrooms::defines::world::chunksCountWidth  = 10;
+const float  shrekrooms::defines::world::bridgePercentage  = 0.2f;
 
 // namespace shrekrooms::defines::player
 const float shrekrooms::defines::player::mouseSensitivity  = 7.0f;

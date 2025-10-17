@@ -3,6 +3,17 @@
 using namespace shrekrooms;
 
 
+glm::ivec2 shrekrooms::worldToChunkCoords(const glm::vec2& pos) {
+    static const glm::vec2 cornerDiff { 0.5f * defines::world::chunkSize, 0.5f * defines::world::chunkSize };
+    glm::vec2 tmp = (pos + cornerDiff) / defines::world::chunkSize;
+    return static_cast<glm::ivec2>(tmp);
+}
+
+glm::ivec2 shrekrooms::worldToChunkCoords(const glm::vec3& pos) {
+    return worldToChunkCoords({ pos.x, pos.z });
+}
+
+
 /*
  * struct shrekrooms::Collision
 */
@@ -57,6 +68,7 @@ Chunk::Chunk(const UniformManager &uniman, const MeshManager &meshman, const glm
         m_uniman(uniman), m_meshman(meshman), m_chunkPos(chunkPos), m_meshes(), m_walls() {
     m_setWalls(node);
     m_addMeshes();
+    m_chunkPosI = static_cast<glm::ivec2>(m_chunkPos);
 
     m_chunkOffset = m_chunkPos * defines::world::chunkSize;
     if (static_cast<int>(m_chunkPos.x + m_chunkPos.y) % 2 == 0)
@@ -75,10 +87,8 @@ void Chunk::draw() const {
 }
 
 bool Chunk::playerCanCollide(const glm::vec2 &pos) const {
-    glm::vec2 rel = glm::abs(pos - m_chunkOffset);
-    if (std::max(rel.x, rel.y) <= 1.5f * defines::world::chunkSize)
-        return true;
-    return false;
+    glm::vec2 chDiff = glm::abs(m_chunkPosI - worldToChunkCoords(pos));
+    return (std::max(chDiff.x, chDiff.y) <= 1);
 }
 
 void Chunk::addThisToCollision(Collision &coll, const glm::vec2 &pos, float radius) const {
@@ -152,6 +162,7 @@ void Chunk::m_genHitboxes() {
 World::World(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze) :
         m_glc(glc), m_uniman(glc.getUniformManager()), m_meshman(meshman), m_maze(maze) {
     m_chunks.reserve(defines::world::chunksCountWidth*defines::world::chunksCountWidth);
+
     for (int x = 0; x < defines::world::chunksCountWidth; x++) {
         for (int y = 0; y < defines::world::chunksCountWidth; y++) {
             m_chunks.emplace_back(m_uniman, meshman, glm::vec2 { static_cast<float>(x), static_cast<float>(y) }, m_maze.getNode({ x, y }));

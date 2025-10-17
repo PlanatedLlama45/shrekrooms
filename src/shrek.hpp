@@ -10,7 +10,7 @@ namespace shrekrooms {
 
 class Shrek {
 public:
-    Shrek(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze, const glm::vec3 &pos);
+    Shrek(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze, const glm::ivec2 &mazePos);
 
     void update(const World &world, const Player &player, float dt);
     void draw(const Player &player) const;
@@ -24,9 +24,10 @@ protected:
     const maze::Maze &m_maze;
     gl::Texture m_tex;
     glm::vec3 m_pos;
-    float m_cooldownProgress;
-    float m_cooldownTime;
-    bool m_isWaiting;
+    glm::ivec2 m_mazePos;
+    std::deque<glm::ivec2> m_targetPath;
+
+    void m_getShortestPath(const glm::ivec2 &target);
 
 };
 

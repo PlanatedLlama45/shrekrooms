@@ -48,6 +48,7 @@ public:
     Maze(size_t size, float bridgePercent);
 
     const MazeNode &getNode(const glm::ivec2 &pos) const;
+    bool canGoDir(const glm::ivec2 &pos, Direction dir) const;
 
 protected:
     Grid<MazeNode> m_nodes;
