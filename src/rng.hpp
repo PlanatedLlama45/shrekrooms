@@ -6,29 +6,31 @@
 namespace shrekrooms::rng {
 
 
-template <typename _ValT>
+using RandomEngine = std::default_random_engine;
+
+template <typename _Val>
 class RandVal {
 public:
-    static_assert((std::is_integral_v<_ValT> || std::is_floating_point_v<_ValT>), "shrekrooms::rng::RandVal::_ValT has to be either integral or floating point");
+    static_assert((std::is_integral_v<_Val> || std::is_floating_point_v<_Val>), "shrekrooms::rng::RandVal::_Val has to be either integral or floating point");
 
-    using ValT = _ValT;
+    using Val = _Val;
 
-    inline RandVal(std::default_random_engine &engine, _ValT lo, _ValT hi) :
+    inline RandVal(RandomEngine &engine, _Val lo, _Val hi) :
         m_engine(engine), m_distribution(lo, hi) { }
 
-    inline _ValT get() {
+    inline _Val get() {
         return m_distribution(m_engine);
     }
 
 protected:
-    using M_DistributionT = std::conditional_t<
-        std::is_integral_v<_ValT>,
-        std::uniform_int_distribution<_ValT>,
-        std::uniform_real_distribution<_ValT>
+    using M_Distribution = std::conditional_t<
+        std::is_integral_v<_Val>,
+        std::uniform_int_distribution<_Val>,
+        std::uniform_real_distribution<_Val>
     >;
 
-    std::default_random_engine &m_engine;
-    M_DistributionT m_distribution;
+    RandomEngine &m_engine;
+    M_Distribution m_distribution;
 
 };
 
@@ -38,18 +40,16 @@ using RandFloat = RandVal<float>;
 
 class Random {
 public:
-    using EngineT = std::default_random_engine;
-
     Random();
 
-    EngineT &getEngine();
+    RandomEngine &getEngine();
 
-    RandInt getRandInt(RandInt::ValT lo, RandInt::ValT hi);
-    RandFloat getRandFloat(RandFloat::ValT lo, RandFloat::ValT hi);
+    RandInt getRandInt(RandInt::Val lo, RandInt::Val hi);
+    RandFloat getRandFloat(RandFloat::Val lo, RandFloat::Val hi);
 
 protected:
     std::random_device m_device;
-    EngineT m_engine;
+    RandomEngine m_engine;
 
 };
 

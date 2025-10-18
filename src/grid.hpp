@@ -6,16 +6,16 @@
 namespace shrekrooms {
 
 
-template <typename T>
+template <typename _Val>
 class Grid {
 public:
     struct Iterator {
     public:
         using iterator_category = std::forward_iterator_tag;
         using difference_value = ptrdiff_t;
-        using value_type = T;
-        using pointer = T *;
-        using reference = T &;
+        using value_type = _Val;
+        using pointer = _Val *;
+        using reference = _Val &;
 
         Iterator(pointer ptr) : m_ptr(ptr) { }
 
@@ -41,9 +41,9 @@ public:
     };
 
 
-    Grid(size_t width, size_t height, T val = T()) :
+    Grid(size_t width, size_t height, _Val val = _Val()) :
             m_width(width), m_height(height), m_size(width * height) {
-        m_data = new T[m_size];
+        m_data = new _Val[m_size];
         for (size_t i = 0; i < m_size; i++)
             m_data[i] = val;
     }
@@ -71,7 +71,7 @@ public:
     }
 
     // Value indexing
-    const T &at(size_t x, size_t y) const {
+    const _Val &at(size_t x, size_t y) const {
         if (x < 0 || x >= m_width)
             throw error { "grid.hpp", "shrekrooms::Grid::at", "'x' was out of range" };
         if (y < 0 || y >= m_height)
@@ -79,11 +79,11 @@ public:
         return m_data[x + (y * m_height)];
     }
 
-    const T &at(const glm::ivec2 &pos) const {
+    const _Val &at(const glm::ivec2 &pos) const {
         return at(pos.x, pos.y);
     }
 
-    T &operator [](const glm::ivec2 &pos) {
+    _Val &operator [](const glm::ivec2 &pos) {
         if (pos.x < 0 || pos.x >= m_width)
             throw error { "grid.hpp", "shrekrooms::Grid::at", "'x' was out of range" };
         if (pos.y < 0 || pos.y >= m_height)
@@ -92,7 +92,7 @@ public:
     }
 
 protected:
-    T *m_data;
+    _Val *m_data;
     size_t m_width, m_height, m_size;
     
 };

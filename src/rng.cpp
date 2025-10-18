@@ -10,14 +10,14 @@ using namespace shrekrooms::rng;
 Random::Random() :
     m_device(), m_engine(m_device()) { }
 
-Random::EngineT &shrekrooms::rng::Random::getEngine() {
+RandomEngine &shrekrooms::rng::Random::getEngine() {
     return m_engine;
 }
 
-RandInt shrekrooms::rng::Random::getRandInt(RandInt::ValT lo, RandInt::ValT hi) {
+RandInt shrekrooms::rng::Random::getRandInt(RandInt::Val lo, RandInt::Val hi) {
     return { m_engine, lo, hi };
 }
 
-RandFloat shrekrooms::rng::Random::getRandFloat(RandFloat::ValT lo, RandFloat::ValT hi) {
+RandFloat shrekrooms::rng::Random::getRandFloat(RandFloat::Val lo, RandFloat::Val hi) {
     return { m_engine, lo, hi };
 }
