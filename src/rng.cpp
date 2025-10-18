@@ -10,6 +10,10 @@ using namespace shrekrooms::rng;
 Random::Random() :
     m_device(), m_engine(m_device()) { }
 
+Random::EngineT &shrekrooms::rng::Random::getEngine() {
+    return m_engine;
+}
+
 RandInt shrekrooms::rng::Random::getRandInt(RandInt::ValT lo, RandInt::ValT hi) {
     return { m_engine, lo, hi };
 }

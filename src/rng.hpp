@@ -38,14 +38,18 @@ using RandFloat = RandVal<float>;
 
 class Random {
 public:
+    using EngineT = std::default_random_engine;
+
     Random();
+
+    EngineT &getEngine();
 
     RandInt getRandInt(RandInt::ValT lo, RandInt::ValT hi);
     RandFloat getRandFloat(RandFloat::ValT lo, RandFloat::ValT hi);
 
 protected:
     std::random_device m_device;
-    std::default_random_engine m_engine;
+    EngineT m_engine;
 
 };
 
