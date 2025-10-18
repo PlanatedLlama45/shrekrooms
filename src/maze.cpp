@@ -59,8 +59,8 @@ bool MazeNode::hasWall(Direction dir) const {
  * class shrekrooms::maze::Maze
 */
 
-Maze::Maze(size_t size, float bridgePercent) :
-        m_nodes(size, size) {
+Maze::Maze(rng::Random &random, size_t size, float bridgePercent) :
+        m_random(random), m_nodes(size, size) {
     m_generateMainPath();
     m_addBridges(size, bridgePercent);
 #if (_MAZE_DESMOS_OUTPUT == 1)
@@ -89,6 +89,10 @@ const MazeNode &Maze::getNode(const glm::ivec2 &pos) const {
 }
 
 Direction Maze::m_getRngDirection(const glm::ivec2 &pos, bool nextShouldBeEmpty) {
+    static rng::RandInt randLen2 = m_random.getRandInt(0, 1);
+    static rng::RandInt randLen3 = m_random.getRandInt(0, 2);
+    static rng::RandInt randLen4 = m_random.getRandInt(0, 3);
+
     std::vector<Direction> res;
     res.reserve(4);
 
@@ -114,9 +118,16 @@ Direction Maze::m_getRngDirection(const glm::ivec2 &pos, bool nextShouldBeEmpty)
                 res.push_back(d);
         }
     }
-    if (res.empty())
-        return Direction::Null;
-    return res[rand() % res.size()];
+
+    switch (res.size()) {
+    case 0: return Direction::Null;
+    case 1: return res[0];
+    case 2: return res[randLen2.get()];
+    case 3: return res[randLen3.get()];
+    case 4: return res[randLen4.get()];
+
+    default: throw error { "maze.cpp", "shrekrooms::maze::Maze::m_getRngDirection", "How..." };
+    }
 }
 
 void Maze::m_generateMainPath() {
@@ -140,9 +151,11 @@ void Maze::m_addBridges(size_t size, float bridgePercent) {
     if (bridgePercent < 0.0f || bridgePercent > 1.0f)
         throw error { "maze.cpp", "shrekrooms::maze::Maze::m_addBridges", "'bridgePercent' has to be in [0;1]" };
 
+    rng::RandInt randCoord = m_random.getRandInt(0, size-1);
+
     const size_t bridgeCount = static_cast<size_t>(size*size * bridgePercent);
     for (size_t i = 0; i < bridgeCount; i++) {
-        glm::ivec2 pos { rand()%size, rand()%size };
+        glm::ivec2 pos { randCoord.get(), randCoord.get() };
         Direction dir = m_getRngDirection(pos, false);
         if (dir == Direction::Null) {
             i--;

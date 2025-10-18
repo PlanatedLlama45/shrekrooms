@@ -5,7 +5,6 @@
 
 int main(int argc, const char **argv) {
     using namespace shrekrooms;
-    srand(time(NULL));
 
     gl::GLContext glc { 640*2, 480*2, "Shrekrooms", false, GLFW_KEY_ESCAPE };
     UniformManager uniman = glc.getUniformManager();
@@ -14,7 +13,8 @@ int main(int argc, const char **argv) {
     gl::Color bgcol { 0.2f, 0.2f, 0.2f };
     glc.setBackgroundColor(bgcol);
 
-    maze::Maze maze { defines::world::chunksCountWidth, defines::world::bridgePercentage };
+    rng::Random random;
+    maze::Maze maze { random, defines::world::chunksCountWidth, defines::world::bridgePercentage };
     MeshManager meshman { uniman, texman };
     World world { glc, meshman, maze };
 

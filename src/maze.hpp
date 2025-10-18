@@ -2,6 +2,7 @@
 
 #include "imports.hpp"
 #include "grid.hpp"
+#include "rng.hpp"
 
 
 namespace shrekrooms::maze {
@@ -47,11 +48,12 @@ struct MazeNode {
 
 class Maze {
 public:
-    Maze(size_t size, float bridgePercent);
+    Maze(rng::Random &random, size_t size, float bridgePercent);
 
     const MazeNode &getNode(const glm::ivec2 &pos) const;
 
 protected:
+    rng::Random &m_random;
     Grid<MazeNode> m_nodes;
 
     Direction m_getRngDirection(const glm::ivec2 &pos, bool nextShouldBeEmpty);
