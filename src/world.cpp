@@ -104,10 +104,10 @@ Collision Chunk::getCollision(const glm::vec2 &pos, float radius) const {
 }
 
 void Chunk::m_setWalls(const maze::MazeNode &node) {
-    m_walls[0] = ((node.walls & maze::Direction::XPos) != maze::Direction::Null);
-    m_walls[1] = ((node.walls & maze::Direction::XNeg) != maze::Direction::Null);
-    m_walls[2] = ((node.walls & maze::Direction::ZPos) != maze::Direction::Null);
-    m_walls[3] = ((node.walls & maze::Direction::ZNeg) != maze::Direction::Null);
+    m_walls[0] = node.hasWall(maze::Direction::XPos);
+    m_walls[1] = node.hasWall(maze::Direction::XNeg);
+    m_walls[2] = node.hasWall(maze::Direction::ZPos);
+    m_walls[3] = node.hasWall(maze::Direction::ZNeg);
 }
 
 void Chunk::m_addMeshes() {

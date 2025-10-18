@@ -84,7 +84,7 @@ void shrekrooms::Shrek::m_getShortestPath(const glm::ivec2 &target) {
         que.erase(std::find(que.begin(), que.end(), u));
 
         for (Direction dir : allDirections) {
-            if (!m_maze.canGoDir(u, dir))
+            if (m_maze.getNode(u).hasWall(dir))
                 continue;
 
             v = u + getDirectionVector(dir);

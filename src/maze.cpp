@@ -50,11 +50,14 @@ Direction shrekrooms::maze::negateDirection(Direction d) {
 MazeNode::MazeNode() :
     walls(Direction::All) { }
 
+bool MazeNode::hasWall(Direction dir) const {
+    return ((walls & dir) != Direction::Null);
+}
+
 
 /*
  * class shrekrooms::maze::Maze
 */
-
 
 Maze::Maze(size_t size, float bridgePercent) :
         m_nodes(size, size) {
@@ -83,11 +86,6 @@ Maze::Maze(size_t size, float bridgePercent) :
 
 const MazeNode &Maze::getNode(const glm::ivec2 &pos) const {
     return m_nodes.at(pos);
-}
-
-bool Maze::canGoDir(const glm::ivec2 &pos, Direction dir) const {
-    const MazeNode &curNode = m_nodes.at(pos);
-    return ((curNode.walls & dir) == Direction::Null);
 }
 
 Direction Maze::m_getRngDirection(const glm::ivec2 &pos, bool nextShouldBeEmpty) {
