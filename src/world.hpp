@@ -40,7 +40,7 @@ struct Hitbox {
 
 class Chunk {
 public:
-    Chunk(const UniformManager &uniman, const MeshManager &meshman, const glm::vec2 &chunkPos, const maze::MazeNode &node);
+    Chunk(const UniformManager &uniman, const MeshManager &meshman, const glm::ivec2 &chunkPos, const maze::MazeNode &node);
     
     void draw() const;
 
@@ -53,8 +53,8 @@ protected:
 
     const UniformManager &m_uniman;
     const MeshManager &m_meshman;
-    glm::vec2 m_chunkPos, m_chunkOffset;
-    glm::ivec2 m_chunkPosI;
+    glm::ivec2 m_chunkPos;
+    glm::vec2 m_chunkOffset;
     glm::mat4 m_chunkTranslateMat;
     std::array<MeshManager::Mesh, (s_wallCount + 1)> m_meshes;
     /*

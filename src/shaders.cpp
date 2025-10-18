@@ -21,7 +21,7 @@ GLuint shrekrooms::shaders::makeShaderModule(const char *filename, GLuint module
     if (!success) {
         char errorLog[1024];
         glGetShaderInfoLog(shaderModule, 1024, NULL, errorLog);
-        throw error { "shaders.hpp", "shrekrooms::shaders::makeShaderModule", "Shader Module compilation error:\n" } << errorLog;
+        throw error { "shaders.cpp", "shrekrooms::shaders::makeShaderModule", "Shader Module compilation error:\n" } << errorLog;
     }
 
     return shaderModule;
@@ -44,7 +44,7 @@ GLuint shrekrooms::shaders::makeShaderProgram() {
     if (!success) {
         char errorLog[1024];
         glGetProgramInfoLog(shader, 1024, NULL, errorLog);
-        throw error { "gl.hpp", "shrekrooms::gl::GLContext::m_makeShaderProgram", "Shader linking error:\n" } << errorLog;
+        throw error { "gl.cpp", "shrekrooms::gl::GLContext::m_makeShaderProgram", "Shader linking error:\n" } << errorLog;
     }
 
     glDeleteShader(vertexModule);

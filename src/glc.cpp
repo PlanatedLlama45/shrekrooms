@@ -15,7 +15,7 @@ void shrekrooms::gl::_m_errorCallback(int errorCode, const char *description) {
 GLContext::GLContext(int width, int height, const char *title, bool windowResizeable, int exitKey) :
         m_exitKey(exitKey) {
     if (!glfwInit())
-        throw error { "gl.hpp", "shrekrooms::gl::GLContext::GLContext", "Failed to initialize GLFW" };
+        throw error { "gl.cpp", "shrekrooms::gl::GLContext::GLContext", "Failed to initialize GLFW" };
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -26,7 +26,7 @@ GLContext::GLContext(int width, int height, const char *title, bool windowResize
 
     if (!m_window.ptr) {
         glfwTerminate();
-        throw error { "gl.hpp", "shrekrooms::gl::GLContext::GLContext", "Failed to create window" };
+        throw error { "gl.cpp", "shrekrooms::gl::GLContext::GLContext", "Failed to create window" };
     }
 
     glfwSetWindowAttrib(m_window.ptr, GLFW_RESIZABLE, GL_FALSE);
@@ -35,7 +35,7 @@ GLContext::GLContext(int width, int height, const char *title, bool windowResize
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         glfwTerminate();
         glfwDestroyWindow(m_window.ptr);
-        throw error { "gl.hpp", "shrekrooms::gl::GLContext::GLContext", "Failed to initialize GLAD" };
+        throw error { "gl.cpp", "shrekrooms::gl::GLContext::GLContext", "Failed to initialize GLAD" };
     }
 
     glfwGetFramebufferSize(m_window.ptr, &m_window.width, &m_window.height);

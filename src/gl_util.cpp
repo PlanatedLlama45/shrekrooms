@@ -12,7 +12,7 @@ shrekrooms::gl::Texture shrekrooms::gl::loadTexture(const std::string &filename,
     stbi_uc *data = stbi_load(filename.c_str(), &width, &height, &channels, STBI_rgb_alpha);
 
     if (!data)
-        throw error { "gl.cpp", "shrekrooms::gl::Texture::Texture", "Texture failed to load:\n" } << stbi_failure_reason();
+        throw error { "gl_util.cpp", "shrekrooms::gl::Texture::Texture", "Texture failed to load:\n" } << stbi_failure_reason();
 
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);

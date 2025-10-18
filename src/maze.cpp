@@ -140,7 +140,7 @@ void Maze::m_generateMainPath() {
 
 void Maze::m_addBridges(size_t size, float bridgePercent) {
     if (bridgePercent < 0.0f || bridgePercent > 1.0f)
-        throw error { "maze.hpp", "shrekrooms::maze::Maze::m_addBridges", "'bridgePercent' has to be in [0;1]" };
+        throw error { "maze.cpp", "shrekrooms::maze::Maze::m_addBridges", "'bridgePercent' has to be in [0;1]" };
 
     const size_t bridgeCount = static_cast<size_t>(size*size * bridgePercent);
     for (size_t i = 0; i < bridgeCount; i++) {

@@ -64,14 +64,13 @@ Collision Hitbox::getCircleIntersection(const glm::vec2 &pos, float radius) cons
  * class shrekrooms::Chunk
 */
 
-Chunk::Chunk(const UniformManager &uniman, const MeshManager &meshman, const glm::vec2 &chunkPos, const maze::MazeNode &node) :
+Chunk::Chunk(const UniformManager &uniman, const MeshManager &meshman, const glm::ivec2 &chunkPos, const maze::MazeNode &node) :
         m_uniman(uniman), m_meshman(meshman), m_chunkPos(chunkPos), m_meshes(), m_walls() {
     m_setWalls(node);
     m_addMeshes();
-    m_chunkPosI = static_cast<glm::ivec2>(m_chunkPos);
 
-    m_chunkOffset = m_chunkPos * defines::world::chunkSize;
-    if (static_cast<int>(m_chunkPos.x + m_chunkPos.y) % 2 == 0)
+    m_chunkOffset = defines::world::chunkSize * static_cast<glm::vec2>(m_chunkPos);
+    if ((m_chunkPos.x + m_chunkPos.y) % 2 == 0)
         m_chunkOffset += glm::vec2 { defines::epsilon, defines::epsilon };
 
     m_chunkTranslateMat = glm::translate(defines::mat4identity, { m_chunkOffset.x, 0.0f, m_chunkOffset.y });
@@ -87,7 +86,7 @@ void Chunk::draw() const {
 }
 
 bool Chunk::playerCanCollide(const glm::vec2 &pos) const {
-    glm::vec2 chDiff = glm::abs(m_chunkPosI - worldToChunkCoords(pos));
+    glm::vec2 chDiff = glm::abs(m_chunkPos - worldToChunkCoords(pos));
     return (std::max(chDiff.x, chDiff.y) <= 1);
 }
 
@@ -165,7 +164,7 @@ World::World(const gl::GLContext &glc, const MeshManager &meshman, const maze::M
 
     for (int x = 0; x < defines::world::chunksCountWidth; x++) {
         for (int y = 0; y < defines::world::chunksCountWidth; y++) {
-            m_chunks.emplace_back(m_uniman, meshman, glm::vec2 { static_cast<float>(x), static_cast<float>(y) }, m_maze.getNode({ x, y }));
+            m_chunks.emplace_back(m_uniman, meshman, glm::ivec2 { x, y }, m_maze.getNode({ x, y }));
         }
     }
 }
