@@ -7,15 +7,16 @@ int main(int argc, const char **argv) {
     using namespace shrekrooms;
 
     gl::GLContext glc { 640*2, 480*2, "Shrekrooms", false, GLFW_KEY_ESCAPE };
-    UniformManager uniman = glc.getUniformManager();
-    TextureManager texman { uniman };
+    rng::Random random;
+
+    const UniformManager &uniman  = glc.getUniformManager();
+    const TextureManager &texman  = glc.getUniformManager();
+    const MeshManager    &meshman = glc.getMeshManager();
 
     gl::Color bgcol { 0.2f, 0.2f, 0.2f };
     glc.setBackgroundColor(bgcol);
 
-    rng::Random random;
     maze::Maze maze { random, defines::world::chunksCountWidth, defines::world::bridgePercentage };
-    MeshManager meshman { uniman, texman };
     World world { glc, meshman, maze };
 
     Player player { glc, { 0.0f, 0.0f, 0.0f }, 0.0f };

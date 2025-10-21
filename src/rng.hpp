@@ -6,7 +6,7 @@
 namespace shrekrooms::rng {
 
 
-using RandomEngine = std::default_random_engine;
+using RandomEngine = std::mt19937;
 
 template <typename _Val>
 class RandVal {
