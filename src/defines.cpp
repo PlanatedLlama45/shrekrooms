@@ -1,5 +1,7 @@
 #include "defines.hpp"
 
+using namespace std::chrono_literals;
+
 
 const glm::vec3 shrekrooms::defines::globalUp      { 0.0f, 1.0f, 0.0f };
 const glm::mat4 shrekrooms::defines::mat4identity  { 1.0f };
@@ -37,3 +39,4 @@ const float shrekrooms::defines::shrek::width     = 3.0f;
 const float shrekrooms::defines::shrek::height    = 4.0f;
 const float shrekrooms::defines::shrek::radius    = 1.5f;
 const float shrekrooms::defines::shrek::walkSpeed = 5.0f;
+const shrekrooms::DurationSecondsFloat shrekrooms::defines::shrek::pathFindPeriod { 5.0s };

@@ -63,6 +63,8 @@ namespace shrek {
     extern const float radius;
     extern const float walkSpeed;
 
+    extern const DurationSecondsFloat pathFindPeriod;
+
 } // namespace shrekrooms::defines::shrek
 
 
