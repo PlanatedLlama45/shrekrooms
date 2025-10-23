@@ -59,13 +59,27 @@ Collision Hitbox::getCircleIntersection(const glm::vec2 &pos, float radius) cons
     return { true, dir };
 }
 
+Hitbox shrekrooms::Hitbox::offset(const glm::vec2& offset) {
+    return Hitbox {
+        posMin + offset,
+        posMax + offset
+    };
+}
 
 /*
  * class shrekrooms::Chunk
 */
 
+std::array<Hitbox, Chunk::s_wallCount> Chunk::s_hitboxes { };
+bool Chunk::s_hitboxesGenerated = false;
+
 Chunk::Chunk(const gl::GLContext &glc, const glm::ivec2 &chunkPos, const maze::MazeNode &node) :
         m_uniman(glc.getUniformManager()), m_meshman(glc.getMeshManager()), m_chunkPos(chunkPos), m_meshes(), m_walls() {
+    if (!s_hitboxesGenerated) {
+        s_genHitboxes();
+        s_hitboxesGenerated = true;
+    }
+
     m_setWalls(node);
     m_addMeshes();
 
@@ -74,8 +88,6 @@ Chunk::Chunk(const gl::GLContext &glc, const glm::ivec2 &chunkPos, const maze::M
         m_chunkOffset += glm::vec2 { defines::epsilon, defines::epsilon };
 
     m_chunkTranslateMat = glm::translate(defines::mat4identity, { m_chunkOffset.x, 0.0f, m_chunkOffset.y });
-
-    m_genHitboxes();
 }
 
 void Chunk::draw() const {
@@ -93,7 +105,11 @@ bool Chunk::playerCanCollide(const glm::vec2 &pos) const {
 void Chunk::addThisToCollision(Collision &coll, const glm::vec2 &pos, float radius) const {
     for (size_t i = 0; i < s_wallCount; i++) {
         if (m_walls[i])
-            coll.addOtherCollision(m_hitboxes[i].getCircleIntersection(pos, radius));
+            coll.addOtherCollision(
+                s_hitboxes[i]
+                    .offset(m_chunkOffset)
+                    .getCircleIntersection(pos, radius)
+            );
     }
 }
 
@@ -121,36 +137,31 @@ void Chunk::m_addMeshes() {
     if (m_walls[3]) m_meshes[4] = MeshManager::Mesh::ChunkWallZNeg;
 }
 
-void Chunk::m_genHitboxes() {
+void Chunk::s_genHitboxes() {
     const float pmax = 0.5f * defines::world::chunkSize;
     const float wmax = pmax - defines::world::wallThicknessHalf;
     const float gmax = pmax + defines::world::wallThicknessHalf - 2.0f*defines::epsilon;
 
     // x+
-    m_hitboxes[0] = Hitbox {
+    s_hitboxes[0] = Hitbox {
         {  wmax, -gmax },
         {  pmax,  gmax }
     };
     // x-
-    m_hitboxes[1] = Hitbox {
+    s_hitboxes[1] = Hitbox {
         { -pmax, -gmax },
         { -wmax,  gmax }
     };
     // z+
-    m_hitboxes[2] = Hitbox {
+    s_hitboxes[2] = Hitbox {
         { -gmax,  wmax },
         {  gmax,  gmax }
     };
     // z-
-    m_hitboxes[3] = Hitbox {
+    s_hitboxes[3] = Hitbox {
         { -gmax, -gmax },
         {  gmax, -wmax }
     };
-
-    for (Hitbox &hb : m_hitboxes) {
-        hb.posMin += m_chunkOffset;
-        hb.posMax += m_chunkOffset;
-    }
 }
 
 

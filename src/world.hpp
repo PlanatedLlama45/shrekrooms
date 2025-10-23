@@ -29,10 +29,12 @@ struct Hitbox {
 
     Hitbox();
     Hitbox(const glm::vec2 &posMin, const glm::vec2 &posMax);
-    
+
     bool isInside(const glm::vec2 &pos) const;
-    
+
     Collision getCircleIntersection(const glm::vec2 &pos, float radius) const;
+
+    Hitbox offset(const glm::vec2 &offset);
 
 };
 
@@ -49,6 +51,8 @@ public:
 
 protected:
     static constexpr size_t s_wallCount = 4;
+    static std::array<Hitbox, s_wallCount> s_hitboxes;
+    static bool s_hitboxesGenerated;
 
     const UniformManager &m_uniman;
     const MeshManager &m_meshman;
@@ -63,11 +67,10 @@ protected:
      * 3: z-
     */
     std::array<bool, s_wallCount> m_walls;
-    std::array<Hitbox, s_wallCount> m_hitboxes;
 
     void m_setWalls(const maze::MazeNode &node);
     void m_addMeshes();
-    void m_genHitboxes();
+    void s_genHitboxes();
 
 };
 
