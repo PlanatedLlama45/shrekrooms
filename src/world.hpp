@@ -39,7 +39,7 @@ struct Hitbox {
 
 class Chunk {
 public:
-    Chunk(const UniformManager &uniman, const MeshManager &meshman, const glm::ivec2 &chunkPos, const maze::MazeNode &node);
+    Chunk(const gl::GLContext &glc, const glm::ivec2 &chunkPos, const maze::MazeNode &node);
     
     void draw() const;
 
@@ -74,7 +74,7 @@ protected:
 
 class World {
 public:
-    World(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze);
+    World(const gl::GLContext &glc, const maze::Maze &maze);
 
     void draw() const;
     

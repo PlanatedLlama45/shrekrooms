@@ -64,8 +64,8 @@ Collision Hitbox::getCircleIntersection(const glm::vec2 &pos, float radius) cons
  * class shrekrooms::Chunk
 */
 
-Chunk::Chunk(const UniformManager &uniman, const MeshManager &meshman, const glm::ivec2 &chunkPos, const maze::MazeNode &node) :
-        m_uniman(uniman), m_meshman(meshman), m_chunkPos(chunkPos), m_meshes(), m_walls() {
+Chunk::Chunk(const gl::GLContext &glc, const glm::ivec2 &chunkPos, const maze::MazeNode &node) :
+        m_uniman(glc.getUniformManager()), m_meshman(glc.getMeshManager()), m_chunkPos(chunkPos), m_meshes(), m_walls() {
     m_setWalls(node);
     m_addMeshes();
 
@@ -158,13 +158,13 @@ void Chunk::m_genHitboxes() {
  * class shrekrooms::World
 */
 
-World::World(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze) :
-        m_glc(glc), m_uniman(glc.getUniformManager()), m_meshman(meshman), m_maze(maze) {
+World::World(const gl::GLContext &glc, const maze::Maze &maze) :
+        m_glc(glc), m_uniman(glc.getUniformManager()), m_meshman(glc.getMeshManager()), m_maze(maze) {
     m_chunks.reserve(defines::world::chunksCountWidth*defines::world::chunksCountWidth);
 
     for (int x = 0; x < defines::world::chunksCountWidth; x++) {
         for (int y = 0; y < defines::world::chunksCountWidth; y++) {
-            m_chunks.emplace_back(m_uniman, meshman, glm::ivec2 { x, y }, m_maze.getNode({ x, y }));
+            m_chunks.emplace_back(m_glc, glm::ivec2 { x, y }, m_maze.getNode({ x, y }));
         }
     }
 }

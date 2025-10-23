@@ -17,37 +17,48 @@ int main(int argc, const char **argv) {
     glc.setBackgroundColor(bgcol);
 
     maze::Maze maze { random, defines::world::chunksCountWidth, defines::world::bridgePercentage };
-    World world { glc, meshman, maze };
+    World world { glc, maze };
 
     Player player { glc, { 0.0f, 0.0f, 0.0f }, 0.0f };
-    Shrek shrek { glc, meshman, maze, { 5, 5 } };
+    Shrek shrek { glc, maze, player, { 5, 5 } };
 
     glc.enableShader();
     uniman.setColor({ 1.0f, 0.0f, 1.0f });
     uniman.setFogColor(bgcol);
 
     float deltaTime = 0.001f;
-    double currentTime;
+    decltype(std::chrono::steady_clock::now()) currentTime;
     glc.setCursorPos({ 0.0f, 0.0f });
     glc.hideCursor();
+    bool paused = false;
     while (glc.isRunning()) {
-        currentTime = glfwGetTime();
+        currentTime = std::chrono::steady_clock::now();
 
         glfwPollEvents();
 
-        player.update(world, deltaTime);
-        shrek.update(world, player, deltaTime);
-        if (shrek.isCollidingPlayer(player))
-            break;
+        if (glc.isMouseButtonClicked(GLFW_MOUSE_BUTTON_RIGHT)) {
+            paused = !paused;
+            if (paused)
+                glc.showCursor();
+            else
+                glc.hideCursor();
+        }
+
+        if (!paused) {
+            player.update(world, deltaTime);
+            shrek.update(world, deltaTime);
+            // if (shrek.isCollidingPlayer())
+            //     break;
+        }
 
         glc.enableShader();
         glc.clearBackground();
 
-        shrek.draw(player);
+        shrek.draw();
         world.draw();
 
         glc.drawBuffer();
-        deltaTime = glfwGetTime() - currentTime;
+        deltaTime = std::chrono::duration_cast<DurationSecondsFloat>(std::chrono::steady_clock::now() - currentTime).count();
         // glfwSetWindowTitle(glc.getWindow().ptr, std::to_string(100 * static_cast<int>(0.01f / deltaTime)).c_str());
     }
     glc.showCursor();
