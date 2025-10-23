@@ -3,8 +3,8 @@
 using namespace shrekrooms;
 
 
-Shrek::Shrek(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze, const glm::ivec2 &mazePos) : 
-        m_glc(glc), m_meshman(meshman), m_uniman(glc.getUniformManager()), m_maze(maze), m_mazePos(mazePos) {
+Shrek::Shrek(const gl::GLContext &glc, const maze::Maze &maze, const glm::ivec2 &mazePos) : 
+        m_glc(glc), m_meshman(glc.getMeshManager()), m_uniman(glc.getUniformManager()), m_maze(maze), m_mazePos(mazePos) {
     glm::vec2 tmp = defines::world::chunkSize * static_cast<glm::vec2>(m_mazePos);
     m_pos = { tmp.x, 0.0f, tmp.y };
     m_getShortestPath({ 0, 0 });

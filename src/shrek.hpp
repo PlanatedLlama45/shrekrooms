@@ -10,7 +10,7 @@ namespace shrekrooms {
 
 class Shrek {
 public:
-    Shrek(const gl::GLContext &glc, const MeshManager &meshman, const maze::Maze &maze, const glm::ivec2 &mazePos);
+    Shrek(const gl::GLContext &glc, const maze::Maze &maze, const glm::ivec2 &mazePos);
 
     void update(const World &world, const Player &player, float dt);
     void draw(const Player &player) const;

@@ -30,8 +30,13 @@
 #include <stack>
 #include <random>
 
+#include <chrono>
+
 
 namespace shrekrooms {
+
+
+using DurationSecondsFloat = std::chrono::duration<float>;
 
 
 class error : public std::exception {

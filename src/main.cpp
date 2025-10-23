@@ -20,7 +20,7 @@ int main(int argc, const char **argv) {
     World world { glc, maze };
 
     Player player { glc, { 0.0f, 0.0f, 0.0f }, 0.0f };
-    Shrek shrek { glc, maze, player, { 5, 5 } };
+    Shrek shrek { glc, maze, { 5, 5 } };
 
     glc.enableShader();
     uniman.setColor({ 1.0f, 0.0f, 1.0f });
@@ -46,7 +46,7 @@ int main(int argc, const char **argv) {
 
         if (!paused) {
             player.update(world, deltaTime);
-            shrek.update(world, deltaTime);
+            shrek.update(world, player, deltaTime);
             // if (shrek.isCollidingPlayer())
             //     break;
         }
@@ -54,7 +54,7 @@ int main(int argc, const char **argv) {
         glc.enableShader();
         glc.clearBackground();
 
-        shrek.draw();
+        shrek.draw(player);
         world.draw();
 
         glc.drawBuffer();
