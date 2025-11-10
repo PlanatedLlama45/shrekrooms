@@ -1,5 +1,6 @@
 #version 420 core
 
+
 in vec2 f_texCoord;
 in vec3 f_pos;
 in mat3 f_matTBN;
@@ -16,58 +17,67 @@ layout (binding=0) uniform sampler2D u_texAlbedo;
 layout (binding=1) uniform sampler2D u_texNormal;
 
 
-vec4 calcFog(vec4 color, float dist) {
-    const float fogStart = 2.0f;
-    const float fogDensity = 0.5f;
+const float DEG_TO_RAD = 0.01745329251f;
 
-    if (dist <= fogStart)
-        return color;
-
-    float t = exp(-(dist - fogStart) * fogDensity);
-
-    return mix(u_fogColor, color, 2*t - t*t);
+/*
+ * x - 'distance' from falloff start
+ * k - speed of falloff
+*/
+float exponentialFalloff(float x, float k) {
+    float t = exp(-x * k);
+    return (2*t - t*t);
 }
 
-const float LIGHT_INTENSITY = 20.0f;
-const float AMBIENT_LIGHT = 0.3f;
+vec4 calcFog(vec4 color, float dist) {
+    const float FOG_START = 2.0f;
+    const float FOG_DENSITY = 0.5f;
 
-const float LIGHT_MAX_ANGLE = 35.0f; // degrees
-const float LIGHT_MAX_ANGLE_COSINE = cos(LIGHT_MAX_ANGLE * 0.01745329251f);
+    if (dist <= FOG_START)
+        return color;
 
-float calcCoeff() {
-    vec3 normal = texture(u_texNormal, f_texCoord).rgb;
-    normal = normalize(normal * 2.0f - 1.0f);
-    normal = normalize(f_matTBN * normal);
+    return mix(u_fogColor, color, exponentialFalloff(dist - FOG_START, FOG_DENSITY));
+}
 
-    vec3 lightDir = normalize(u_viewPos - f_pos);
+float calcBrightness() {
+    const float LIGHT_INTENSITY = 20.0f;
+    const float AMBIENT_LIGHT = 0.3f;
 
-    float dist = distance(u_viewPos, f_pos);
+    const float LIGHT_MAX_ANGLE = 35.0f; // degrees
+    const float LIGHT_MAX_ANGLE_COSINE = cos(LIGHT_MAX_ANGLE * DEG_TO_RAD);
+
+    const float LIGHT_FALLOFF = 5.0f;
+
+    vec3 normal;
+    if (u_usePBR == 1) {
+        normal = texture(u_texNormal, f_texCoord).rgb;
+        normal = normalize(normal * 2.0f - 1.0f);
+    } else
+        normal = vec3(0.0f, 0.0f, 1.0f);
+    normal = normalize(f_matTBN * normal); // transform: tangent space -> global space
+
+    vec3 lightDir = u_viewPos - f_pos;
+    float dist = length(lightDir);
+    lightDir /= dist;
 
     float lambertian = max(dot(lightDir, normal), 0.0f);
 
-    float coeff = clamp(LIGHT_INTENSITY * lambertian / (dist * dist), AMBIENT_LIGHT, 1.0f);
-    float d = dot(lightDir, u_viewDir);
-    if (d >= LIGHT_MAX_ANGLE_COSINE)
-        return coeff;
-    float t = exp(-(d - LIGHT_MAX_ANGLE_COSINE) * 5.0f);
-    return clamp((2*t - t*t) * coeff, AMBIENT_LIGHT, 1.0f);
+    float brightness = LIGHT_INTENSITY * lambertian / (dist * dist);
+
+    float angleCos = dot(lightDir, u_viewDir);
+    if (angleCos < LIGHT_MAX_ANGLE_COSINE)
+        brightness *= exponentialFalloff(angleCos - LIGHT_MAX_ANGLE_COSINE, LIGHT_FALLOFF);
+
+    return clamp(brightness, AMBIENT_LIGHT, 1.0f);
 }
+
 
 void main() {
     outScreenColor = texture(u_texAlbedo, f_texCoord);
-    // outScreenColor = vec4(f_normal, 1.0f);
 
     if (outScreenColor.a == 0)
         discard;
 
-    if (u_usePBR == 1) {
-        // outScreenColor *= texture(u_texNormal, f_texCoord).r;
-        // outScreenColor = texture(u_texNormal, f_texCoord);
-        // vec3 normal = texture(u_texNormal, f_texCoord).rgb;
-        // normal = normalize(normal * 2.0f - 1.0f)
-    }
-
-    outScreenColor *= calcCoeff();
+    outScreenColor *= calcBrightness();
 
     float dist = distance(f_pos, u_viewPos);
     outScreenColor = calcFog(outScreenColor, dist);
