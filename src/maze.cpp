@@ -12,6 +12,8 @@ _SHREKROOMS_DEFINE_DIRECTION_OPERATOR(|)
 _SHREKROOMS_DEFINE_DIRECTION_OPERATOR(&)
 _SHREKROOMS_DEFINE_DIRECTION_OPERATOR(^)
 
+#undef _SHREKROOMS_DEFINE_DIRECTION_OPERATOR
+
 #define _SHREKROOMS_DEFINE_DIRECTION_EQUALS_OPERATOR(op)                        \
     Direction &shrekrooms::maze::operator op##=(Direction &d1, Direction d2) {  \
         d1 = d1 op d2;                                                          \
@@ -21,6 +23,8 @@ _SHREKROOMS_DEFINE_DIRECTION_OPERATOR(^)
 _SHREKROOMS_DEFINE_DIRECTION_EQUALS_OPERATOR(|)
 _SHREKROOMS_DEFINE_DIRECTION_EQUALS_OPERATOR(&)
 _SHREKROOMS_DEFINE_DIRECTION_EQUALS_OPERATOR(^)
+
+#undef _SHREKROOMS_DEFINE_DIRECTION_EQUALS_OPERATOR
 
 glm::ivec2 shrekrooms::maze::getDirectionVector(Direction d) {
     switch (d) {
