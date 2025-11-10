@@ -46,8 +46,8 @@ GLContext::GLContext(int width, int height, const char *title, bool windowResize
     m_shader = shaders::makeShaderProgram();
 
     m_uniman = std::make_unique<UniformManager>(m_shader);
-    m_texman = std::make_unique<TextureManager>(*m_uniman);
-    m_meshman = std::make_unique<MeshManager>(*m_uniman, *m_texman);
+    m_matman = std::make_unique<MaterialManager>(*m_uniman);
+    m_meshman = std::make_unique<MeshManager>(*m_uniman, *m_matman);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -77,8 +77,8 @@ const shrekrooms::UniformManager &GLContext::getUniformManager() const {
     return *m_uniman;
 }
 
-const shrekrooms::TextureManager &GLContext::getTextureManager() const {
-    return *m_texman;
+const shrekrooms::MaterialManager &GLContext::getMaterialManager() const {
+    return *m_matman;
 }
 
 const shrekrooms::MeshManager &GLContext::getMeshManager() const {

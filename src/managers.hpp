@@ -18,13 +18,15 @@ public:
         Projection,
         Color,
         ViewPos,
-        FogColor
+        ViewDir,
+        FogColor,
+        UsePBR,
     };
 
     UniformManager(GLuint shader);
 
     // Uniforms
-    void useTexture(gl::Texture tex) const;
+    void useMaterial(const gl::Material &mat) const;
     void setTranslateMatrix(const glm::mat4 &translateMat) const;
     void setRotateMatrix(const glm::mat4 &rotateMat) const;
     void setViewMatrix(const glm::mat4 &viewMat) const;
@@ -32,22 +34,23 @@ public:
     void setColor(const gl::Color &color) const;
     void setFogColor(const gl::Color &color) const;
     void setViewPos(const glm::vec3 &pos) const;
+    void setViewDir(const glm::vec3 &dir) const;
 
 protected:
-    static constexpr size_t s_uniformCount = 6;
+    static constexpr size_t s_uniformCount = 9;
     std::array<GLuint, s_uniformCount> m_uniforms;
     GLuint m_shader;
 
-    static constexpr size_t s_uniformToId(Uniform uniform);
+    inline static constexpr size_t s_uniformToId(Uniform uniform);
 
     GLuint m_getUniformLocation(const std::string &name) const;
 
 };
 
 
-class TextureManager {
+class MaterialManager {
 public:
-    enum class TextureID {
+    enum class MaterialID {
         Null = 0,
 
         Floor,
@@ -55,17 +58,16 @@ public:
         Shrek
     };
 
-    TextureManager(const UniformManager &uniman);
-    ~TextureManager();
+    MaterialManager(const UniformManager &uniman);
 
-    gl::Texture getTexture(TextureID texture) const;
+    const gl::Material &getMaterial(MaterialID material) const;
 
 protected:
-    static constexpr size_t s_texCount = 3;
+    static constexpr size_t s_matCount = 3;
     const UniformManager &m_uniman;
-    std::array<gl::Texture, s_texCount> m_textures;
+    std::array<std::unique_ptr<gl::Material>, s_matCount> m_materials;
 
-    static constexpr size_t s_textureToId(TextureID texture);
+    inline static constexpr size_t s_materialToId(MaterialID texture);
 
 };
 
@@ -83,18 +85,19 @@ public:
         Shrek
     };
 
-    MeshManager(const UniformManager &uniman, const TextureManager &texman);
+    MeshManager(const UniformManager &uniman, const MaterialManager &texman);
 
     void renderMesh(Mesh mesh) const;
 
 protected:
     static constexpr size_t s_meshCount = 6;
-    const TextureManager &m_texman;
     const UniformManager &m_uniman;
-    std::array<gl::Geometry, s_meshCount> m_geometries;
-    std::array<gl::Texture, s_meshCount> m_textures;
+    const MaterialManager &m_matman;
 
-    static constexpr size_t s_meshToId(Mesh mesh);
+    std::array<gl::Geometry, s_meshCount> m_geometries;
+    std::array<MaterialManager::MaterialID, s_meshCount> m_materials;
+
+    inline static constexpr size_t s_meshToId(Mesh mesh);
 
     void m_bindGeometry(gl::Geometry &geometry, const std::vector<float> &verts);
 

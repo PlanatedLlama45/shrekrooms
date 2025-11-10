@@ -28,6 +28,7 @@ void Player::update(const World &world, float dt) {
         0.0f,
         glm::sin(m_cameraRot)
     };
+    m_uniman.setViewDir(-forw);
     glm::vec3 right = glm::normalize(glm::cross(forw, defines::globalUp));
 
     glm::vec3 dPos = { 0.0f, 0.0f, 0.0f };

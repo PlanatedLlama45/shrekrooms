@@ -1,7 +1,12 @@
 build/*
 !build/*.exe
+
 dependencies/
 .vscode/
 plans.txt
+
 tmp.py
-tmp.glsl
+
+img/*.zip
+img/*/*
+!img/*/*.jpg

@@ -32,7 +32,7 @@ public:
     const Window &getWindow() const;
     GLuint getShader() const;
     const UniformManager &getUniformManager() const;
-    const TextureManager &getTextureManager() const;
+    const MaterialManager &getMaterialManager() const;
     const MeshManager &getMeshManager() const;
 
     // General
@@ -64,7 +64,7 @@ protected:
     GLuint m_shader;
     Window m_window;
     std::unique_ptr<UniformManager> m_uniman;
-    std::unique_ptr<TextureManager> m_texman;
+    std::unique_ptr<MaterialManager> m_matman;
     std::unique_ptr<MeshManager> m_meshman;
     int m_exitKey;
 

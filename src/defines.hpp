@@ -3,7 +3,8 @@
 #include "imports.hpp"
 
 
-#define _MAZE_DESMOS_OUTPUT 0
+#define _MAZE_DESMOS_OUTPUT false
+#define _MAIN_SHOW_FPS true
 
 
 namespace shrekrooms::defines {

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(Shrekrooms VERSION 1.0.0)
 
-set(ENABLE_CONSOLE FALSE)
+set(ENABLE_CONSOLE TRUE)
 
 find_package(OpenGL REQUIRED)
 
@@ -13,13 +13,14 @@ file(
     src/*.cpp
 )
 
-add_compile_options("-g")
-
 if(ENABLE_CONSOLE)
     add_executable(${PROJECT_NAME} ${SOURCES})
 else()
     add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
 endif()
+
+target_compile_options(Shrekrooms PUBLIC -g)
+target_compile_options(Shrekrooms PUBLIC -O0)
 
 target_include_directories(
     ${PROJECT_NAME}

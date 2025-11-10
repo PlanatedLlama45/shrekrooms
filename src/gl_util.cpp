@@ -5,8 +5,10 @@
 #define STBI_FAILURE_USERMSG
 #include <stb_image.h>
 
+using namespace shrekrooms::gl;
 
-shrekrooms::gl::Texture shrekrooms::gl::loadTexture(const std::string &filename, bool interpolation) {
+
+Texture shrekrooms::gl::loadTexture(const std::string &filename, bool interpolation) {
     Texture tex;
     int channels, width, height;
     stbi_uc *data = stbi_load(filename.c_str(), &width, &height, &channels, STBI_rgb_alpha);
@@ -32,4 +34,39 @@ shrekrooms::gl::Texture shrekrooms::gl::loadTexture(const std::string &filename,
     glGenerateMipmap(GL_TEXTURE_2D);
 
     return tex;
+}
+
+
+/*
+ * struct shrekrooms::gl::Material
+*/
+
+Material::Material(const std::string& filename, bool isPBR) :
+        m_isPBR(isPBR), m_textures() {
+    if (m_isPBR) {
+        m_textures[0] = loadTexture("../img/" + filename + "/albedo.jpg");
+        m_textures[1] = loadTexture("../img/" + filename + "/normal.jpg");
+    } else {
+        m_textures[0] = loadTexture("../img/" + filename);
+    }
+}
+
+Material::~Material() {
+    glDeleteTextures(s_texCount, m_textures.data());
+}
+
+bool shrekrooms::gl::Material::isPBR() const {
+    return m_isPBR;
+}
+
+Texture shrekrooms::gl::Material::getTexture() const {
+    return m_textures[0];
+}
+
+Texture Material::getAlbedoTexture() const {
+    return m_textures[0];
+}
+
+Texture Material::getNormalTexture() const {
+    return m_textures[1];
 }
